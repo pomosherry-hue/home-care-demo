@@ -6,283 +6,102 @@
   <title>居家介护 - 老人端</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      height: 100vh;
-      overflow: hidden;
-    }
-    .screen {
-      display: none;
-      height: 100vh;
-      height: 100dvh;
-      padding: 16px;
-      flex-direction: column;
-      overflow: hidden;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; height: 100vh; overflow: hidden; }
+    .screen { display: none; height: 100dvh; padding: 16px; flex-direction: column; }
     .screen.active { display: flex; }
-    .header {
-      text-align: center;
-      padding: 12px 0 20px;
-      font-size: 22px;
-      font-weight: 600;
-    }
-    .btn-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 16px;
-      flex: 1;
-    }
-    .big-btn {
-      background: #fff;
-      border: none;
-      border-radius: 20px;
-      padding: 20px 10px;
-      font-size: 20px;
-      font-weight: 500;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      cursor: pointer;
-      min-height: 110px;
-      transition: transform 0.1s;
-    }
-    .big-btn:active { transform: scale(0.96); }
+    .header { text-align: center; padding: 12px 0 20px; font-size: 22px; font-weight: 600; }
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; }
+    .big-btn { background: #fff; border: none; border-radius: 20px; padding: 20px 10px; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; min-height: 110px; }
     .big-btn .icon { font-size: 36px; }
     .big-btn.red { background: #ffebee; color: #c62828; }
     .big-btn.blue { background: #e3f2fd; color: #1565c0; }
     .big-btn.green { background: #e8f5e9; color: #2e7d32; }
     .big-btn.orange { background: #fff3e0; color: #ef6c00; }
     .big-btn.purple { background: #f3e5f5; color: #7b1fa2; }
-    .emergency {
-      margin-top: 16px;
-      background: #d32f2f;
-      color: white;
-      border: none;
-      border-radius: 16px;
-      padding: 18px;
-      font-size: 22px;
-      font-weight: 600;
-      width: 100%;
-    }
-    .body-map {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      gap: 10px;
-      overflow-y: auto;
-      padding-bottom: 10px;
-    }
-    .body-btn {
-      width: 85%;
-      padding: 14px;
-      font-size: 20px;
-      border-radius: 14px;
-      border: 2px solid #ddd;
-      background: white;
-      margin: 2px 0;
-      flex-shrink: 0;
-    }
-    .body-btn.selected { border-color: #1976d2; background: #e3f2fd; color: #1565c0; font-weight: 600; }
-    .severity-btns {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      flex: 1;
-      justify-content: center;
-    }
-    .sev-btn {
-      padding: 24px;
-      font-size: 22px;
-      border-radius: 16px;
-      border: none;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-    .sev-btn.mild { background: #e8f5e9; }
-    .sev-btn.moderate { background: #fff8e1; }
-    .sev-btn.severe { background: #ffebee; }
-    .confirm-box {
-      background: white;
-      border-radius: 20px;
-      padding: 30px 20px;
-      text-align: center;
-      margin: auto 0;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-    }
-    .confirm-box p { font-size: 22px; margin: 16px 0; }
-    .action-row {
-      display: flex;
-      gap: 12px;
-      padding: 12px 0;
-      background: #f5f5f5;
-      flex-shrink: 0;
-    }
-    .action-row button {
-      flex: 1;
-      padding: 16px;
-      font-size: 18px;
-      border-radius: 14px;
-      border: none;
-    }
-    .btn-back { background: #eee; color: #333; }
-    .btn-send { background: #1976d2; color: white; }
-    .btn-send:disabled { background: #bbb; color: #eee; }
-    .success {
-      text-align: center;
-      margin: auto;
-    }
-    .success .check {
-      font-size: 80px;
-      color: #4caf50;
-      margin-bottom: 20px;
-    }
-    .success h2 { font-size: 26px; margin-bottom: 12px; }
-    .success p { font-size: 18px; color: #666; margin-bottom: 30px; }
-    .back-home {
-      background: #1976d2;
-      color: white;
-      border: none;
-      padding: 16px 40px;
-      font-size: 18px;
-      border-radius: 14px;
-    }
+    .emergency { margin-top: 16px; background: #d32f2f; color: white; border: none; border-radius: 16px; padding: 18px; font-size: 22px; width: 100%; }
+    .body-map { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow-y: auto; }
+    .body-btn { width: 85%; padding: 14px; font-size: 20px; border-radius: 14px; border: 2px solid #ddd; background: white; }
+    .action-row { display: flex; gap: 12px; padding: 12px 0; }
+    .btn-back { flex: 1; padding: 16px; font-size: 18px; border-radius: 14px; border: none; background: #eee; }
+    .success { text-align: center; margin: auto; }
+    .success .check { font-size: 80px; color: #4caf50; }
+    .back-home { background: #1976d2; color: white; border: none; padding: 16px 40px; font-size: 18px; border-radius: 14px; }
   </style>
 </head>
 <body>
-
-  <!-- 1. 首页大按钮 -->
   <div id="home" class="screen active">
     <div class="header">张爷爷，需要什么？</div>
     <div class="btn-grid">
-      <button class="big-btn red" onclick="goTo('body')">
-        <span class="icon">😣</span>疼
-      </button>
-      <button class="big-btn blue" onclick="sendDirect('喝水')">
-        <span class="icon">💧</span>喝水
-      </button>
-      <button class="big-btn green" onclick="sendDirect('翻身')">
-        <span class="icon">🔄</span>翻身
-      </button>
-      <button class="big-btn orange" onclick="sendDirect('冷/热')">
-        <span class="icon">🌡️</span>冷/热
-      </button>
-      <button class="big-btn purple" onclick="sendDirect('大小便')">
-        <span class="icon">🚽</span>大小便
-      </button>
-      <button class="big-btn" onclick="sendDirect('胃管不舒服')">
-        <span class="icon">🩺</span>胃管不舒服
-      </button>
-      <button class="big-btn" onclick="sendDirect('找家人')">
-        <span class="icon">👨‍👩‍👧</span>找家人
-      </button>
-      <button class="big-btn" onclick="sendDirect('其他')">
-        <span class="icon">💬</span>其他
-      </button>
+      <button class="big-btn red" onclick="goTo('body')"><span class="icon">😣</span>疼</button>
+      <button class="big-btn blue" onclick="sendDirect('喝水')"><span class="icon">💧</span>喝水</button>
+      <button class="big-btn green" onclick="sendDirect('翻身')"><span class="icon">🔄</span>翻身</button>
+      <button class="big-btn orange" onclick="sendDirect('冷/热')"><span class="icon">🌡️</span>冷/热</button>
+      <button class="big-btn purple" onclick="sendDirect('大小便')"><span class="icon">🚽</span>大小便</button>
+      <button class="big-btn" onclick="sendDirect('胃管不舒服')"><span class="icon">🩺</span>胃管不舒服</button>
+      <button class="big-btn" onclick="sendDirect('找家人')"><span class="icon">👨‍👩‍👧</span>找家人</button>
+      <button class="big-btn" onclick="sendDirect('其他')"><span class="icon">💬</span>其他</button>
     </div>
     <button class="emergency" onclick="sendDirect('紧急情况')">🚨 紧急情况</button>
   </div>
-
-  <!-- 2. 选择部位 -->
   <div id="body" class="screen">
     <div class="header">哪里疼？</div>
     <div class="body-map">
-      <button class="body-btn" onclick="selectBody(this, '头')">头</button>
-      <button class="body-btn" onclick="selectBody(this, '脖子')">脖子</button>
-      <button class="body-btn" onclick="selectBody(this, '胸')">胸</button>
-      <button class="body-btn" onclick="selectBody(this, '肚子')">肚子</button>
-      <button class="body-btn" onclick="selectBody(this, '腰')">腰</button>
-      <button class="body-btn" onclick="selectBody(this, '手')">手</button>
-      <button class="body-btn" onclick="selectBody(this, '腿')">腿</button>
-      <button class="body-btn" onclick="selectBody(this, '其他')">其他</button>
+      <button class="body-btn" onclick="selectBody('头')">头</button>
+      <button class="body-btn" onclick="selectBody('脖子')">脖子</button>
+      <button class="body-btn" onclick="selectBody('胸')">胸</button>
+      <button class="body-btn" onclick="selectBody('肚子')">肚子</button>
+      <button class="body-btn" onclick="selectBody('腰')">腰</button>
+      <button class="body-btn" onclick="selectBody('手')">手</button>
+      <button class="body-btn" onclick="selectBody('腿')">腿</button>
+      <button class="body-btn" onclick="selectBody('其他')">其他</button>
     </div>
-    <div class="action-row">
-      <button class="btn-back" onclick="goTo('home')">返回</button>
-      <button class="btn-send" onclick="goTo('severity')" id="bodyNext" disabled>下一步</button>
-    </div>
+    <div class="action-row"><button class="btn-back" onclick="goTo('home')">返回</button></div>
   </div>
-
-  <!-- 3. 选择程度 -->
-  <div id="severity" class="screen">
-    <div class="header">有多疼？</div>
-    <div class="severity-btns">
-      <button class="sev-btn mild" onclick="selectSev('有点不舒服')">
-        🙂 有点不舒服
-      </button>
-      <button class="sev-btn moderate" onclick="selectSev('比较疼')">
-        😐 比较疼
-      </button>
-      <button class="sev-btn severe" onclick="selectSev('非常疼')">
-        😣 非常疼
-      </button>
-    </div>
-    <div class="action-row">
-      <button class="btn-back" onclick="goTo('body')">返回</button>
-    </div>
-  </div>
-
-  <!-- 4. 确认 -->
-  <div id="confirm" class="screen">
-    <div class="confirm-box">
-      <div style="font-size:48px;">🧓</div>
-      <p id="confirmText">我肚子很疼。</p>
-      <p style="font-size:16px;color:#666;">系统会把您的需求告诉家人和照护人员</p>
-      <div class="action-row">
-        <button class="btn-back" onclick="goTo('severity')">返回</button>
-        <button class="btn-send" onclick="sendFinal()">发送</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 5. 成功 -->
   <div id="success" class="screen">
     <div class="success">
       <div class="check">✅</div>
       <h2>已发送！</h2>
-      <p>我们会尽快联系您。<br>您不是一个人，我们在您身边。</p>
+      <p>家属和护理员会马上看到。</p>
       <button class="back-home" onclick="goTo('home')">返回首页</button>
     </div>
   </div>
-
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script>
-    let selectedBody = '';
-    let selectedSev = '';
-
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+    const db = firebase.database();
+    const elder = window.ELDER_DEMO;
     function goTo(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
     }
-
-    function selectBody(el, part) {
-      document.querySelectorAll('.body-btn').forEach(b => b.classList.remove('selected'));
-      el.classList.add('selected');
-      selectedBody = part;
-      // 两下完成：点部位后直接发送成功
-      setTimeout(() => goTo('success'), 200);
+    function relatedAbility(type) {
+      const a = elder.ability;
+      if (type.indexOf('疼') >= 0 || type.indexOf('痛') >= 0) return { 翻身: a['翻身'], 坐起: a['坐起'], 站立: a['站立'], 沟通: a['沟通'] };
+      if (type === '喝水') return { 喝水: a['喝水'], 沟通: a['沟通'] };
+      if (type === '翻身') return { 翻身: a['翻身'], 坐起: a['坐起'] };
+      if (type === '大小便') return { 如厕: a['如厕'], 坐起: a['坐起'], 转移: a['转移'] };
+      return { 沟通: a['沟通'] };
     }
-
-    function selectSev(sev) {
-      selectedSev = sev;
-      setTimeout(() => goTo('success'), 180);
+    function sendNeed(type) {
+      const ref = db.ref('needs').push();
+      return ref.set({
+        id: ref.key,
+        elder_id: elder.id,
+        elder_name: elder.name,
+        address: elder.address,
+        type: type,
+        status: 'pending',
+        created_at: Date.now(),
+        ability_snapshot: relatedAbility(type)
+      });
     }
-
+    function selectBody(part) {
+      sendNeed(part + '部疼痛').then(function(){ goTo('success'); }).catch(function(e){ alert('发送失败：' + e.message); });
+    }
     function sendDirect(need) {
-      // 模拟直接发送（实际会调用后端）
-      alert('已发送需求：' + need + '\n（演示模式，实际会推送给家属和护理员）');
-      // 也可以跳到成功页： goTo('success');
-    }
-
-    function sendFinal() {
-      // 这里可以调用后端 API
-      // fetch('/api/need', { method:'POST', body: JSON.stringify({body:selectedBody, severity:selectedSev}) })
-      goTo('success');
+      sendNeed(need).then(function(){ goTo('success'); }).catch(function(e){ alert('发送失败：' + e.message); });
     }
   </script>
 </body>
