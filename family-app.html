@@ -6,258 +6,87 @@
   <title>居家介护 - 家属端</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f5f5f5;
-      color: #333;
-      min-height: 100vh;
-      padding-bottom: 70px;
-    }
-    .header {
-      background: #1976d2;
-      color: white;
-      padding: 16px;
-      text-align: center;
-      font-size: 18px;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-    .tab-bar {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: white;
-      display: flex;
-      border-top: 1px solid #eee;
-      z-index: 20;
-    }
-    .tab {
-      flex: 1;
-      text-align: center;
-      padding: 10px 0;
-      font-size: 12px;
-      color: #888;
-      background: none;
-      border: none;
-    }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; padding-bottom: 70px; }
+    .header { background: #1976d2; color: white; padding: 16px; text-align: center; font-size: 18px; font-weight: 600; }
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #eee; }
+    .tab { flex: 1; text-align: center; padding: 10px 0; font-size: 12px; color: #888; background: none; border: none; }
     .tab.active { color: #1976d2; font-weight: 600; }
-    .tab .icon { font-size: 22px; display: block; margin-bottom: 2px; }
     .screen { display: none; padding: 16px; }
     .screen.active { display: block; }
-    .card {
-      background: white;
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 12px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-    }
+    .card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     .card.urgent { border-left: 5px solid #d32f2f; }
-    .card h3 { font-size: 17px; margin-bottom: 6px; }
-    .card .time { font-size: 13px; color: #888; margin-bottom: 8px; }
-    .ability {
-      background: #fff8e1;
-      color: #ef6c00;
-      font-size: 13px;
-      padding: 8px 12px;
-      border-radius: 8px;
-      margin-top: 10px;
-      line-height: 1.5;
-    }
-    .status {
-      display: inline-block;
-      font-size: 12px;
-      padding: 2px 8px;
-      border-radius: 10px;
-      margin-left: 6px;
-    }
+    .ability { background: #fff8e1; color: #ef6c00; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
+    .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
     .status.new { background: #ffebee; color: #c62828; }
     .status.done { background: #e8f5e9; color: #2e7d32; }
-    .profile-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #f0f0f0;
-      font-size: 15px;
-    }
-    .profile-item:last-child { border-bottom: none; }
-    .level {
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 6px;
-      white-space: nowrap;
-    }
+    .profile-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .level { font-size: 12px; padding: 4px 10px; border-radius: 6px; }
     .level.self { background: #e8f5e9; color: #2e7d32; }
     .level.little { background: #fff8e1; color: #f9a825; }
     .level.more { background: #fff3e0; color: #ef6c00; }
     .level.full { background: #ffebee; color: #c62828; }
-    .elder-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .elder-header .avatar {
-      width: 50px;
-      height: 50px;
-      background: #e3f2fd;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 24px;
-    }
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      margin-top: 12px;
-    }
-    .btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-    }
-    .btn-primary { background: #1976d2; color: white; }
-    .btn-secondary { background: #eee; color: #333; }
   </style>
 </head>
 <body>
   <div class="header">居家介护 · 家属端</div>
-
-  <!-- 首页：最新通知 -->
-  <div id="home" class="screen active">
-    <div class="card urgent">
-      <h3>张爷爷 <span class="status new">新需求</span></h3>
-      <div class="time">刚刚 · 14:32</div>
-      <div style="font-size:16px;margin:8px 0;">请求：<strong>腰部疼痛</strong></div>
-      <div class="ability">
-        <strong>能力提示：</strong><br>
-        翻身：需要较多帮助<br>
-        坐起：需要较多帮助<br>
-        站立：完全需要帮助<br>
-        沟通：自己可以
-      </div>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="alert('已通知护理员')">联系护理员</button>
-        <button class="btn btn-secondary" onclick="alert('已标记已读')">知道了</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>张爷爷 <span class="status done">已完成</span></h3>
-      <div class="time">今天 10:15</div>
-      <div>请求：喝水</div>
-      <div class="ability" style="background:#e8f5e9;color:#2e7d32;">
-        喝水：需要一点帮助 · 李护士已协助
-      </div>
-    </div>
-
-    <div class="card">
-      <h3>张爷爷 <span class="status done">已完成</span></h3>
-      <div class="time">昨天 16:40</div>
-      <div>请求：翻身</div>
-    </div>
-  </div>
-
-  <!-- 能力画像 -->
+  <div id="home" class="screen active"><div id="needList" class="card">正在连接…</div></div>
   <div id="profile" class="screen">
-    <div class="elder-header">
-      <div class="avatar">🧓</div>
-      <div>
-        <div style="font-size:18px;font-weight:600;">张爷爷 · 89岁</div>
-        <div style="font-size:13px;color:#666;">朝阳区 · 长期卧床</div>
-      </div>
-    </div>
-
     <div class="card">
-      <div style="font-weight:600;margin-bottom:4px;">生活能力画像</div>
-      <div style="font-size:12px;color:#888;margin-bottom:12px;">支持自立 · 保留剩余能力</div>
-
-      <div class="profile-item">
-        <span>吃饭</span>
-        <span class="level self">自己可以</span>
-      </div>
-      <div class="profile-item">
-        <span>喝水</span>
-        <span class="level little">需要一点帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>翻身</span>
-        <span class="level more">需要较多帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>坐起</span>
-        <span class="level more">需要较多帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>站立</span>
-        <span class="level full">完全需要帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>转移</span>
-        <span class="level full">完全需要帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>如厕</span>
-        <span class="level more">需要较多帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>穿衣</span>
-        <span class="level more">需要较多帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>洗澡</span>
-        <span class="level full">完全需要帮助</span>
-      </div>
-      <div class="profile-item">
-        <span>沟通</span>
-        <span class="level self">自己可以</span>
-      </div>
+      <div style="font-weight:600;">张爷爷 · 生活能力画像</div>
+      <div class="profile-item"><span>吃饭</span><span class="level self">自己可以</span></div>
+      <div class="profile-item"><span>喝水</span><span class="level little">需要一点帮助</span></div>
+      <div class="profile-item"><span>翻身</span><span class="level more">需要较多帮助</span></div>
+      <div class="profile-item"><span>坐起</span><span class="level more">需要较多帮助</span></div>
+      <div class="profile-item"><span>站立</span><span class="level full">完全需要帮助</span></div>
+      <div class="profile-item"><span>转移</span><span class="level full">完全需要帮助</span></div>
+      <div class="profile-item"><span>如厕</span><span class="level more">需要较多帮助</span></div>
+      <div class="profile-item"><span>穿衣</span><span class="level more">需要较多帮助</span></div>
+      <div class="profile-item"><span>洗澡</span><span class="level full">完全需要帮助</span></div>
+      <div class="profile-item"><span>沟通</span><span class="level self">自己可以</span></div>
     </div>
   </div>
-
-  <!-- 服务记录 -->
-  <div id="records" class="screen">
-    <div class="card">
-      <div style="font-weight:600;">今天 14:32</div>
-      <div>腰部疼痛 → 已通知护理员</div>
-      <div style="font-size:13px;color:#666;margin-top:4px;">能力：翻身需较多帮助</div>
-    </div>
-    <div class="card">
-      <div style="font-weight:600;">今天 10:15</div>
-      <div>喝水 → 李护士上门协助</div>
-      <div style="font-size:13px;color:#666;margin-top:4px;">服务备注：老人状态稳定</div>
-    </div>
-    <div class="card">
-      <div style="font-weight:600;">昨天 16:40</div>
-      <div>翻身 → 已完成</div>
-    </div>
-  </div>
-
+  <div id="records" class="screen"><div id="recordList" class="card">暂无记录</div></div>
   <div class="tab-bar">
-    <button class="tab active" onclick="showTab('home', this)">
-      <span class="icon">🔔</span>通知
-    </button>
-    <button class="tab" onclick="showTab('profile', this)">
-      <span class="icon">👤</span>能力画像
-    </button>
-    <button class="tab" onclick="showTab('records', this)">
-      <span class="icon">📋</span>服务记录
-    </button>
+    <button class="tab active" onclick="showTab('home', this)">通知</button>
+    <button class="tab" onclick="showTab('profile', this)">能力画像</button>
+    <button class="tab" onclick="showTab('records', this)">服务记录</button>
   </div>
-
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+  <script src="firebase-config.js"></script>
   <script>
+    firebase.initializeApp(window.FIREBASE_CONFIG);
+    const db = firebase.database();
     function showTab(id, el) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       el.classList.add('active');
     }
+    function formatTime(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    }
+    function abilityHtml(snap) {
+      if (!snap) return '';
+      return Object.keys(snap).map(k => k + '：' + snap[k]).join('<br>');
+    }
+    db.ref('needs').on('value', function (s) {
+      const items = [];
+      s.forEach(function (c) { items.push(c.val()); });
+      items.sort((a,b) => (b.created_at||0)-(a.created_at||0));
+      if (!items.length) {
+        document.getElementById('needList').innerHTML = '还没有新需求。请用另一部手机打开老人端发送一条。';
+        document.getElementById('recordList').innerHTML = '暂无记录';
+        return;
+      }
+      document.getElementById('needList').innerHTML = items.map(n => {
+        const pending = n.status === 'pending';
+        return '<div class="card' + (pending ? ' urgent' : '') + '"><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (pending?'new':'done') + '">' + (pending?'新需求':(n.status==='accepted'?'已接单':'已完成')) + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div></div>';
+      }).join('');
+      document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.type + ' · ' + n.status + '</div>').join('');
+    });
   </script>
 </body>
 </html>
