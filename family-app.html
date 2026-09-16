@@ -25,11 +25,16 @@
     .level.little { background: #fff8e1; color: #f9a825; }
     .level.more { background: #fff3e0; color: #ef6c00; }
     .level.full { background: #ffebee; color: #c62828; }
+    #enableAlert { width: 100%; margin-bottom: 12px; padding: 14px; border: none; border-radius: 12px; background: #c62828; color: #fff; font-size: 16px; }
+    .need-icon { font-size: 42px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
   <div class="header">居家介护 · 家属端</div>
-  <div id="home" class="screen active"><div id="needList" class="card">正在连接…</div></div>
+  <div id="home" class="screen active">
+    <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
+    <div id="needList" class="card">正在连接…</div>
+  </div>
   <div id="profile" class="screen">
     <div class="card">
       <div style="font-weight:600;">张爷爷 · 生活能力画像</div>
@@ -54,6 +59,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="alert.js"></script>
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
@@ -74,16 +80,17 @@
     }
     db.ref('needs').on('value', function (s) {
       const items = [];
-      s.forEach(function (c) { items.push(c.val()); });
+      s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
       items.sort((a,b) => (b.created_at||0)-(a.created_at||0));
+      CareAlert.check(items);
       if (!items.length) {
-        document.getElementById('needList').innerHTML = '还没有新需求。请用另一部手机打开老人端发送一条。';
+        document.getElementById('needList').innerHTML = '还没有新需求。';
         document.getElementById('recordList').innerHTML = '暂无记录';
         return;
       }
       document.getElementById('needList').innerHTML = items.map(n => {
         const pending = n.status === 'pending';
-        return '<div class="card' + (pending ? ' urgent' : '') + '"><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (pending?'new':'done') + '">' + (pending?'新需求':(n.status==='accepted'?'已接单':'已完成')) + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div></div>';
+        return '<div class="card' + (pending ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (pending?'new':'done') + '">' + (pending?'新需求':(n.status==='accepted'?'已接单':'已完成')) + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div></div>';
       }).join('');
       document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.type + ' · ' + n.status + '</div>').join('');
     });
