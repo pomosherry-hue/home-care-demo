@@ -19,11 +19,16 @@
     .btn { flex: 1; padding: 12px; border: none; border-radius: 10px; background: #2e7d32; color: white; }
     .btn-row { display: flex; gap: 8px; margin-top: 12px; }
     .meta { font-size: 13px; color: #666; }
+    #enableAlert { width: 100%; margin-bottom: 12px; padding: 14px; border: none; border-radius: 12px; background: #c62828; color: #fff; font-size: 16px; }
+    .need-icon { font-size: 42px; }
   </style>
 </head>
 <body>
   <div class="header">居家介护 · 护理员端</div>
-  <div id="tasks" class="screen active"><div id="taskList" class="card">正在连接…</div></div>
+  <div id="tasks" class="screen active">
+    <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
+    <div id="taskList" class="card">正在连接…</div>
+  </div>
   <div id="doing" class="screen"><div id="doingList" class="card">当前没有进行中的服务</div></div>
   <div id="history" class="screen"><div id="historyList" class="card">暂无历史</div></div>
   <div class="tab-bar">
@@ -34,6 +39,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="alert.js"></script>
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
@@ -64,10 +70,11 @@
       const items = [];
       s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
       items.sort((a,b) => (b.created_at||0)-(a.created_at||0));
+      CareAlert.check(items);
       const pending = items.filter(n => n.status === 'pending');
       const doing = items.filter(n => n.status === 'accepted');
       const done = items.filter(n => n.status === 'completed');
-      document.getElementById('taskList').innerHTML = pending.length ? pending.map(n => '<div class="card urgent"><h3>' + n.elder_name + ' · ' + n.type + '</h3><div class="meta">' + formatTime(n.created_at) + '</div><div class="ability-box">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn" onclick="acceptTask(\'' + n.id + '\')">接单上门</button></div></div>').join('') : '<div class="card">暂无待处理任务</div>';
+      document.getElementById('taskList').innerHTML = pending.length ? pending.map(n => '<div class="card urgent"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + n.elder_name + ' · ' + n.type + '</h3><div class="meta">' + formatTime(n.created_at) + '</div><div class="ability-box">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn" onclick="acceptTask(\'' + n.id + '\')">接单上门</button></div></div>').join('') : '<div class="card">暂无待处理任务</div>';
       document.getElementById('doingList').innerHTML = doing.length ? doing.map(n => '<div class="card"><h3>' + n.elder_name + ' · ' + n.type + '</h3><button class="btn" onclick="finishTask(\'' + n.id + '\')">完成服务</button></div>').join('') : '<div class="card">当前没有进行中的服务</div>';
       document.getElementById('historyList').innerHTML = done.length ? done.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.elder_name + ' · ' + n.type + '</div>').join('') : '<div class="card">暂无历史</div>';
     });
