@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1976d2">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>居家介护 - 家属端</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; padding-bottom: 70px; }
@@ -61,6 +65,7 @@
   <script src="firebase-config.js"></script>
   <script src="alert.js"></script>
   <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
     function showTab(id, el) {
