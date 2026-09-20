@@ -2,16 +2,16 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>居家介护 - 家属端</title>
   <link rel="manifest" href="manifest.json">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 80px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 96px; }
     .header { background: #1976d2; color: #fff; padding: 16px; text-align: center; font-weight: 600; }
-    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #eee; }
-    .tab { flex: 1; padding: 10px 0; border: none; background: none; color: #888; font-size: 12px; }
-    .tab.active { color: #1976d2; font-weight: 600; }
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #eee; padding-bottom: env(safe-area-inset-bottom); z-index: 30; }
+    .tab { flex: 1; padding: 14px 0; border: none; background: none; color: #888; font-size: 15px; }
+    .tab.active { color: #1976d2; font-weight: 700; }
     .screen { display: none; padding: 16px; }
     .screen.active { display: block; }
     .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
@@ -19,8 +19,10 @@
     .ability { background: #fff8e1; color: #ef6c00; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
     input { width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
     label { font-size: 13px; color: #666; }
-    #enableAlert, .save-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; background: #1976d2; color: #fff; font-size: 16px; }
-    #enableAlert { background: #c62828; margin-bottom: 12px; }
+    #enableAlert, .save-btn, .go-bind { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; margin-bottom: 12px; }
+    #enableAlert { background: #c62828; color: #fff; }
+    .go-bind { background: #1565c0; color: #fff; }
+    .save-btn { background: #1976d2; color: #fff; }
     .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
     .btn { flex: 1; min-width: 28%; padding: 12px 6px; border: none; border-radius: 10px; font-size: 14px; }
     .btn-ok { background: #2e7d32; color: #fff; }
@@ -35,31 +37,26 @@
   <div class="header">居家介护 · 家属端</div>
   <div id="home" class="screen active">
     <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
+    <button class="go-bind" onclick="openBind()">绑定家庭电话</button>
     <div id="needList" class="card">正在连接…</div>
   </div>
   <div id="bind" class="screen">
     <div class="card">
       <div style="font-weight:600;margin-bottom:8px;">用老人电话号绑定一家人</div>
-      <label>老人姓名</label>
-      <input id="elderName" placeholder="张爷爷">
-      <label>老人电话</label>
-      <input id="elderPhone" type="tel" placeholder="13800000000">
-      <label>家属姓名</label>
-      <input id="familyName" placeholder="女儿">
-      <label>家属电话</label>
-      <input id="familyPhone" type="tel" placeholder="13900000000">
-      <label>护理员姓名</label>
-      <input id="caregiverName" placeholder="李护士">
-      <label>护理员电话</label>
-      <input id="caregiverPhone" type="tel" placeholder="13700000000">
+      <label>老人姓名</label><input id="elderName" placeholder="张爷爷">
+      <label>老人电话</label><input id="elderPhone" type="tel" placeholder="13800000000">
+      <label>家属姓名</label><input id="familyName" placeholder="女儿">
+      <label>家属电话</label><input id="familyPhone" type="tel" placeholder="13900000000">
+      <label>护理员姓名</label><input id="caregiverName" placeholder="李护士">
+      <label>护理员电话</label><input id="caregiverPhone" type="tel" placeholder="13700000000">
       <button class="save-btn" onclick="saveBind()">保存绑定</button>
       <p id="bindMsg" style="margin-top:10px;color:#2e7d32;"></p>
     </div>
   </div>
   <div id="records" class="screen"><div id="recordList" class="card">暂无记录</div></div>
   <div class="tab-bar">
-    <button class="tab active" onclick="showTab('home', this)">通知</button>
-    <button class="tab" onclick="showTab('bind', this)">家庭</button>
+    <button class="tab active" id="tabHome" onclick="showTab('home', this)">通知</button>
+    <button class="tab" id="tabBind" onclick="showTab('bind', this)">家庭</button>
     <button class="tab" onclick="showTab('records', this)">记录</button>
   </div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -78,6 +75,7 @@
         if (el && data[k]) el.value = data[k];
       });
     });
+    function openBind() { showTab('bind', document.getElementById('tabBind')); }
     function saveBind() {
       const data = {
         elderName: document.getElementById('elderName').value.trim() || '张爷爷',
@@ -88,14 +86,14 @@
         caregiverPhone: document.getElementById('caregiverPhone').value.trim()
       };
       FamilyBind.save(db, data).then(function () {
-        document.getElementById('bindMsg').innerText = '已保存。以老人电话为这一家的绑定。';
+        document.getElementById('bindMsg').innerText = '已保存';
       });
     }
     function showTab(id, el) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      el.classList.add('active');
+      if (el) el.classList.add('active');
     }
     function formatTime(ts) {
       if (!ts) return '';
