@@ -4,25 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#1976d2">
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>居家介护 - 家属端</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="icon" href="icon.svg">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; color: #333; min-height: 100vh; padding-bottom: 70px; }
-    .header { background: #1976d2; color: white; padding: 16px; text-align: center; font-size: 18px; font-weight: 600; }
-    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; display: flex; border-top: 1px solid #eee; }
-    .tab { flex: 1; text-align: center; padding: 10px 0; font-size: 12px; color: #888; background: none; border: none; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 70px; }
+    .header { background: #1976d2; color: #fff; padding: 16px; text-align: center; font-weight: 600; }
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #eee; }
+    .tab { flex: 1; padding: 12px 0; border: none; background: none; color: #888; }
     .tab.active { color: #1976d2; font-weight: 600; }
     .screen { display: none; padding: 16px; }
     .screen.active { display: block; }
-    .card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
+    .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     .card.urgent { border-left: 5px solid #d32f2f; }
     .ability { background: #fff8e1; color: #ef6c00; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
-    .status { font-size: 12px; padding: 2px 8px; border-radius: 10px; }
-    .status.new { background: #ffebee; color: #c62828; }
-    .status.done { background: #e8f5e9; color: #2e7d32; }
+    .status.new { background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
+    .status.done { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
     .profile-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
     .level { font-size: 12px; padding: 4px 10px; border-radius: 6px; }
     .level.self { background: #e8f5e9; color: #2e7d32; }
@@ -30,7 +27,12 @@
     .level.more { background: #fff3e0; color: #ef6c00; }
     .level.full { background: #ffebee; color: #c62828; }
     #enableAlert { width: 100%; margin-bottom: 12px; padding: 14px; border: none; border-radius: 12px; background: #c62828; color: #fff; font-size: 16px; }
-    .need-icon { font-size: 42px; margin-bottom: 8px; }
+    .need-icon { font-size: 42px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .btn { flex: 1; min-width: 30%; padding: 12px 8px; border: none; border-radius: 10px; font-size: 14px; }
+    .btn-ok { background: #2e7d32; color: #fff; }
+    .btn-wx { background: #07c160; color: #fff; }
+    .btn-tel { background: #eee; color: #333; }
   </style>
 </head>
 <body>
@@ -65,7 +67,6 @@
   <script src="firebase-config.js"></script>
   <script src="alert.js"></script>
   <script>
-    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
     function showTab(id, el) {
@@ -83,6 +84,22 @@
       if (!snap) return '';
       return Object.keys(snap).map(k => k + '：' + snap[k]).join('<br>');
     }
+    function confirmNeed(id, who) {
+      db.ref('needs/' + id).update({
+        confirm_text: who + '已看到',
+        confirm_detail: '您不用担心',
+        confirmed_by: who,
+        confirmed_at: Date.now()
+      });
+    }
+    function copyWechat(name, type) {
+      const text = name + '需要帮助：' + type + '。请家里人看一下。';
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(function(){ alert('已复制，去微信粘贴到家庭群即可'); }).catch(function(){ prompt('请手动复制', text); });
+      } else {
+        prompt('请手动复制', text);
+      }
+    }
     db.ref('needs').on('value', function (s) {
       const items = [];
       s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
@@ -95,9 +112,10 @@
       }
       document.getElementById('needList').innerHTML = items.map(n => {
         const pending = n.status === 'pending';
-        return '<div class="card' + (pending ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (pending?'new':'done') + '">' + (pending?'新需求':(n.status==='accepted'?'已接单':'已完成')) + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div></div>';
+        const done = !!n.confirm_text;
+        return '<div class="card' + (pending && !done ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (done?'done':'new') + '">' + (n.confirm_text || '新需求') + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\',\'女儿\')">已确认</button><button class="btn btn-wx" onclick="copyWechat(\'' + (n.elder_name||'张爷爷') + '\',\'' + n.type + '\')">复制到微信</button></div></div>';
       }).join('');
-      document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.type + ' · ' + n.status + '</div>').join('');
+      document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.type + ' · ' + (n.confirm_text || n.status) + '</div>').join('');
     });
   </script>
 </body>
