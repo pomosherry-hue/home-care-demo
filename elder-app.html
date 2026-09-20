@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
   <title>居家介护 - 老人端</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -21,7 +22,7 @@
     .emergency { margin-top: 12px; background: #d32f2f; color: #fff; border: none; border-radius: 16px; padding: 18px; font-size: 22px; }
     .body-map { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow-y: auto; }
     .body-btn { width: 85%; padding: 14px; font-size: 20px; border-radius: 14px; border: 2px solid #ddd; background: #fff; }
-    .btn-back, .back-home, .enter { padding: 16px; font-size: 18px; border: none; border-radius: 14px; }
+    .btn-back, .enter { padding: 16px; font-size: 18px; border: none; border-radius: 14px; }
     .btn-back { background: #eee; margin-top: 12px; }
     .enter { background: #1976d2; color: #fff; width: 100%; }
     input { width: 100%; padding: 16px; font-size: 20px; border: 1px solid #ddd; border-radius: 12px; margin: 12px 0; }
@@ -32,7 +33,7 @@
 <body>
   <div id="gate" class="screen active">
     <div class="header">输入老人电话</div>
-    <p style="text-align:center;color:#666">这一号代表这一家，只要输一次</p>
+    <p style="text-align:center;color:#666">只要输一次，以后会记住</p>
     <input id="gatePhone" type="tel" placeholder="13800000000">
     <button class="enter" onclick="enterFamily()">进入</button>
   </div>
@@ -70,7 +71,6 @@
       <h2 id="okTitle">已发送！</h2>
       <p id="waitLine">请等一等，家人看到会告诉您。</p>
       <p id="confirmLine"></p>
-      <button class="back-home" style="background:#1976d2;color:#fff;margin-top:20px" onclick="goTo('home')">返回首页</button>
     </div>
   </div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -82,15 +82,19 @@
     const elder = window.ELDER_DEMO;
     let phone = localStorage.getItem('elderPhone') || '';
     let currentNeedRef = null;
+    let homeTimer = null;
     function goTo(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
+    }
+    function backHomeSoon(ms) {
+      clearTimeout(homeTimer);
+      homeTimer = setTimeout(function () { goTo('home'); }, ms);
     }
     function enterFamily() {
       phone = (document.getElementById('gatePhone').value || '').replace(/\s/g, '');
       if (!phone) { alert('请输入电话'); return; }
       localStorage.setItem('elderPhone', phone);
-      document.getElementById('homeTitle').innerText = '需要什么？';
       goTo('home');
     }
     if (phone) {
@@ -115,6 +119,7 @@
           document.getElementById('okTitle').innerText = n.confirm_text;
           document.getElementById('waitLine').innerText = '您不用再操作。';
           document.getElementById('confirmLine').innerText = n.confirm_detail || '';
+          backHomeSoon(8000);
         }
       });
     }
@@ -140,6 +145,7 @@
         document.getElementById('waitLine').innerText = '请等一等，家人看到会告诉您。';
         document.getElementById('confirmLine').innerText = '';
         goTo('success');
+        backHomeSoon(20000);
       });
     }
     function selectBody(part) { sendNeed(part + '部疼痛').catch(function(e){ if(e&&e.message) alert(e.message); }); }
