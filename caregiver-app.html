@@ -17,7 +17,6 @@
     .card.urgent { border-left: 5px solid #d32f2f; }
     .ability-box { background: #fff8e1; border-radius: 10px; padding: 12px; font-size: 13px; margin: 10px 0; }
     .btn { flex: 1; padding: 12px 8px; border: none; border-radius: 10px; background: #2e7d32; color: #fff; }
-    .btn-wx { background: #07c160; }
     .btn-row { display: flex; gap: 8px; margin-top: 12px; }
     .meta { font-size: 13px; color: #666; }
     #enableAlert { width: 100%; margin-bottom: 12px; padding: 14px; border: none; border-radius: 12px; background: #c62828; color: #fff; }
@@ -67,6 +66,9 @@
         confirmed_at: Date.now()
       });
     }
+    window.CareAlertAck = function (need) {
+      if (need && need.id) confirmNeed(need.id);
+    };
     function acceptTask(id) {
       confirmNeed(id);
       db.ref('needs/' + id).update({ status: 'accepted' });
@@ -76,12 +78,6 @@
       db.ref('needs/' + id).update({ status: 'completed', confirm_text: '护理员已完成', confirm_detail: '您可以放心' });
       showTab('history', document.querySelectorAll('.tab')[2]);
     }
-    function copyWechat(name, type) {
-      const text = name + '需要帮助：' + type;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function(){ alert('已复制，可粘贴到微信'); });
-      } else prompt('复制', text);
-    }
     db.ref('needs').on('value', function (s) {
       const items = [];
       s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
@@ -90,7 +86,7 @@
       const pending = items.filter(n => n.status === 'pending');
       const doing = items.filter(n => n.status === 'accepted');
       const done = items.filter(n => n.status === 'completed');
-      document.getElementById('taskList').innerHTML = pending.length ? pending.map(n => '<div class="card urgent"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + n.elder_name + ' · ' + n.type + '</h3><div class="meta">' + formatTime(n.created_at) + '</div><div class="ability-box">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn" onclick="confirmNeed(\'' + n.id + '\')">已确认</button><button class="btn" onclick="acceptTask(\'' + n.id + '\')">接单</button><button class="btn btn-wx" onclick="copyWechat(\'' + n.elder_name + '\',\'' + n.type + '\')">微信</button></div></div>').join('') : '<div class="card">暂无待处理任务</div>';
+      document.getElementById('taskList').innerHTML = pending.length ? pending.map(n => '<div class="card urgent"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + n.elder_name + ' · ' + n.type + '</h3><div class="meta">' + formatTime(n.created_at) + '</div><div class="ability-box">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn" onclick="confirmNeed(\'' + n.id + '\')">已确认</button><button class="btn" onclick="acceptTask(\'' + n.id + '\')">接单</button></div></div>').join('') : '<div class="card">暂无待处理任务</div>';
       document.getElementById('doingList').innerHTML = doing.length ? doing.map(n => '<div class="card"><h3>' + n.elder_name + ' · ' + n.type + '</h3><button class="btn" onclick="finishTask(\'' + n.id + '\')">完成服务</button></div>').join('') : '<div class="card">当前没有进行中的服务</div>';
       document.getElementById('historyList').innerHTML = done.length ? done.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.elder_name + ' · ' + n.type + '</div>').join('') : '<div class="card">暂无历史</div>';
     });
