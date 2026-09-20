@@ -3,35 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#1976d2">
   <title>居家介护 - 家属端</title>
   <link rel="manifest" href="manifest.json">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 70px; }
+    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 80px; }
     .header { background: #1976d2; color: #fff; padding: 16px; text-align: center; font-weight: 600; }
     .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #eee; }
-    .tab { flex: 1; padding: 12px 0; border: none; background: none; color: #888; }
+    .tab { flex: 1; padding: 10px 0; border: none; background: none; color: #888; font-size: 12px; }
     .tab.active { color: #1976d2; font-weight: 600; }
     .screen { display: none; padding: 16px; }
     .screen.active { display: block; }
     .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     .card.urgent { border-left: 5px solid #d32f2f; }
     .ability { background: #fff8e1; color: #ef6c00; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
+    input { width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+    label { font-size: 13px; color: #666; }
+    #enableAlert, .save-btn { width: 100%; padding: 14px; border: none; border-radius: 12px; background: #1976d2; color: #fff; font-size: 16px; }
+    #enableAlert { background: #c62828; margin-bottom: 12px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+    .btn { flex: 1; min-width: 28%; padding: 12px 6px; border: none; border-radius: 10px; font-size: 14px; }
+    .btn-ok { background: #2e7d32; color: #fff; }
+    .btn-tel { background: #1565c0; color: #fff; }
+    .btn-sms { background: #00897b; color: #fff; }
+    .need-icon { font-size: 42px; }
     .status.new { background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
     .status.done { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-    .profile-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
-    .level { font-size: 12px; padding: 4px 10px; border-radius: 6px; }
-    .level.self { background: #e8f5e9; color: #2e7d32; }
-    .level.little { background: #fff8e1; color: #f9a825; }
-    .level.more { background: #fff3e0; color: #ef6c00; }
-    .level.full { background: #ffebee; color: #c62828; }
-    #enableAlert { width: 100%; margin-bottom: 12px; padding: 14px; border: none; border-radius: 12px; background: #c62828; color: #fff; font-size: 16px; }
-    .need-icon { font-size: 42px; }
-    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .btn { flex: 1; min-width: 30%; padding: 12px 8px; border: none; border-radius: 10px; font-size: 14px; }
-    .btn-ok { background: #2e7d32; color: #fff; }
-    .btn-wx { background: #07c160; color: #fff; }
   </style>
 </head>
 <body>
@@ -40,34 +37,60 @@
     <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
     <div id="needList" class="card">正在连接…</div>
   </div>
-  <div id="profile" class="screen">
+  <div id="bind" class="screen">
     <div class="card">
-      <div style="font-weight:600;">张爷爷 · 生活能力画像</div>
-      <div class="profile-item"><span>吃饭</span><span class="level self">自己可以</span></div>
-      <div class="profile-item"><span>喝水</span><span class="level little">需要一点帮助</span></div>
-      <div class="profile-item"><span>翻身</span><span class="level more">需要较多帮助</span></div>
-      <div class="profile-item"><span>坐起</span><span class="level more">需要较多帮助</span></div>
-      <div class="profile-item"><span>站立</span><span class="level full">完全需要帮助</span></div>
-      <div class="profile-item"><span>转移</span><span class="level full">完全需要帮助</span></div>
-      <div class="profile-item"><span>如厕</span><span class="level more">需要较多帮助</span></div>
-      <div class="profile-item"><span>穿衣</span><span class="level more">需要较多帮助</span></div>
-      <div class="profile-item"><span>洗澡</span><span class="level full">完全需要帮助</span></div>
-      <div class="profile-item"><span>沟通</span><span class="level self">自己可以</span></div>
+      <div style="font-weight:600;margin-bottom:8px;">用老人电话号绑定一家人</div>
+      <label>老人姓名</label>
+      <input id="elderName" placeholder="张爷爷">
+      <label>老人电话</label>
+      <input id="elderPhone" type="tel" placeholder="13800000000">
+      <label>家属姓名</label>
+      <input id="familyName" placeholder="女儿">
+      <label>家属电话</label>
+      <input id="familyPhone" type="tel" placeholder="13900000000">
+      <label>护理员姓名</label>
+      <input id="caregiverName" placeholder="李护士">
+      <label>护理员电话</label>
+      <input id="caregiverPhone" type="tel" placeholder="13700000000">
+      <button class="save-btn" onclick="saveBind()">保存绑定</button>
+      <p id="bindMsg" style="margin-top:10px;color:#2e7d32;"></p>
     </div>
   </div>
   <div id="records" class="screen"><div id="recordList" class="card">暂无记录</div></div>
   <div class="tab-bar">
     <button class="tab active" onclick="showTab('home', this)">通知</button>
-    <button class="tab" onclick="showTab('profile', this)">能力画像</button>
-    <button class="tab" onclick="showTab('records', this)">服务记录</button>
+    <button class="tab" onclick="showTab('bind', this)">家庭</button>
+    <button class="tab" onclick="showTab('records', this)">记录</button>
   </div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="alert.js"></script>
+  <script src="family-bind.js"></script>
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
+    let bind = {};
+    FamilyBind.load(db, function (data) {
+      bind = data;
+      ['elderName','elderPhone','familyName','familyPhone','caregiverName','caregiverPhone'].forEach(function (k) {
+        var el = document.getElementById(k);
+        if (el && data[k]) el.value = data[k];
+      });
+    });
+    function saveBind() {
+      const data = {
+        elderName: document.getElementById('elderName').value.trim() || '张爷爷',
+        elderPhone: document.getElementById('elderPhone').value.trim(),
+        familyName: document.getElementById('familyName').value.trim() || '女儿',
+        familyPhone: document.getElementById('familyPhone').value.trim(),
+        caregiverName: document.getElementById('caregiverName').value.trim() || '护理员',
+        caregiverPhone: document.getElementById('caregiverPhone').value.trim()
+      };
+      FamilyBind.save(db, data).then(function () {
+        document.getElementById('bindMsg').innerText = '已保存。以老人电话为这一家的绑定。';
+      });
+    }
     function showTab(id, el) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -92,14 +115,8 @@
       });
     }
     window.CareAlertAck = function (need) {
-      if (need && need.id) confirmNeed(need.id, '女儿');
+      if (need && need.id) confirmNeed(need.id, bind.familyName || '女儿');
     };
-    function copyWechat(name, type) {
-      const text = name + '需要帮助：' + type + '。请家里人看一下。';
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(function(){ alert('已复制，去微信粘贴到家庭群即可'); }).catch(function(){ prompt('请手动复制', text); });
-      } else prompt('请手动复制', text);
-    }
     db.ref('needs').on('value', function (s) {
       const items = [];
       s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
@@ -111,9 +128,9 @@
         return;
       }
       document.getElementById('needList').innerHTML = items.map(n => {
-        const pending = n.status === 'pending';
         const done = !!n.confirm_text;
-        return '<div class="card' + (pending && !done ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (done?'done':'new') + '">' + (n.confirm_text || '新需求') + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\',\'女儿\')">已确认</button></div></div>';
+        const smsText = (n.elder_name || '张爷爷') + '需要帮助：' + n.type;
+        return '<div class="card' + (!done ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (done?'done':'new') + '">' + (n.confirm_text || '新需求') + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\',\'' + (bind.familyName||'女儿') + '\')">已确认</button><button class="btn btn-tel" onclick="FamilyBind.tel(\'' + (bind.elderPhone||'') + '\')">打给老人</button><button class="btn btn-sms" onclick="FamilyBind.sms(\'' + (bind.caregiverPhone||'') + '\',\'' + smsText + '\')">短信护理员</button></div></div>';
       }).join('');
       document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.type + ' · ' + (n.confirm_text || n.status) + '</div>').join('');
     });
