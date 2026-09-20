@@ -2,38 +2,43 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>居家介护 - 护理员端</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 70px; }
+    body { font-family: -apple-system, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 70px; }
     .header { background: #2e7d32; color: #fff; padding: 16px; text-align: center; font-weight: 600; }
-    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #eee; }
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; }
     .tab { flex: 1; padding: 12px 0; border: none; background: none; color: #888; }
     .tab.active { color: #2e7d32; font-weight: 600; }
     .screen { display: none; padding: 16px; }
     .screen.active { display: block; }
     .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-    .card.urgent { border-left: 5px solid #d32f2f; }
-    .ability-box { background: #fff8e1; border-radius: 10px; padding: 12px; font-size: 13px; margin: 10px 0; }
-    .btn { flex: 1; padding: 12px 6px; border: none; border-radius: 10px; background: #2e7d32; color: #fff; font-size: 14px; }
+    input { width: 100%; padding: 12px; margin: 12px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+    .enter, .btn, #enableAlert { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; }
+    .enter { background: #2e7d32; color: #fff; }
+    #enableAlert { background: #c62828; color: #fff; margin-bottom: 12px; }
+    .btn { background: #2e7d32; color: #fff; flex: 1; width: auto; }
     .btn-tel { background: #1565c0; }
-    .btn-sms { background: #00897b; }
-    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .meta { font-size: 13px; color: #666; }
-    #enableAlert { width: 100%; margin-bottom: 12px; padding: 14px; border: none; border-radius: 12px; background: #c62828; color: #fff; }
-    .need-icon { font-size: 42px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 12px; }
   </style>
 </head>
 <body>
   <div class="header">居家介护 · 护理员端</div>
-  <div id="tasks" class="screen active">
+  <div id="gate" class="screen active">
+    <div class="card">
+      <div style="font-weight:600">输入老人电话才能看这一家</div>
+      <input id="gatePhone" type="tel" placeholder="老人电话">
+      <button class="enter" onclick="enterFamily()">进入这一家</button>
+    </div>
+  </div>
+  <div id="tasks" class="screen">
     <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
     <div id="taskList" class="card">正在连接…</div>
   </div>
   <div id="doing" class="screen"><div id="doingList" class="card">当前没有进行中的服务</div></div>
   <div id="history" class="screen"><div id="historyList" class="card">暂无历史</div></div>
-  <div class="tab-bar">
+  <div class="tab-bar" id="tabs" style="display:none">
     <button class="tab active" onclick="showTab('tasks', this)">待处理</button>
     <button class="tab" onclick="showTab('doing', this)">服务中</button>
     <button class="tab" onclick="showTab('history', this)">历史</button>
@@ -46,56 +51,58 @@
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
+    let phone = localStorage.getItem('careElderPhone') || '';
     let bind = {};
-    FamilyBind.load(db, function (data) { bind = data || {}; });
+    let started = false;
     function showTab(id, el) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       el.classList.add('active');
     }
-    function formatTime(ts) {
-      if (!ts) return '';
-      const d = new Date(ts);
-      return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    function mine(items) {
+      return items.filter(n => String(n.elder_phone || '') === phone);
     }
-    function abilityHtml(snap) {
-      if (!snap) return '';
-      return Object.keys(snap).map(k => k + '：' + snap[k]).join('<br>');
+    function startListen() {
+      if (started) return;
+      started = true;
+      FamilyBind.load(db, phone, function (data) { bind = data || {}; });
+      db.ref('needs').on('value', function (s) {
+        const items = [];
+        s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
+        const scoped = mine(items).sort((a,b) => (b.created_at||0)-(a.created_at||0));
+        CareAlert.check(scoped.filter(n => n.status === 'pending'));
+        const pending = scoped.filter(n => n.status === 'pending');
+        const doing = scoped.filter(n => n.status === 'accepted');
+        const done = scoped.filter(n => n.status === 'completed');
+        document.getElementById('taskList').innerHTML = pending.length ? pending.map(n => '<div class="card"><h3>' + n.elder_name + ' · ' + n.type + '</h3><div class="btn-row"><button class="btn" onclick="confirmNeed(\'' + n.id + '\')">已确认</button><button class="btn" onclick="acceptTask(\'' + n.id + '\')">接单</button><button class="btn btn-tel" onclick="FamilyBind.tel(\'' + phone + '\')">打给老人</button></div></div>').join('') : '<div class="card">这一家暂无待处理</div>';
+        document.getElementById('doingList').innerHTML = doing.length ? doing.map(n => '<div class="card"><h3>' + n.elder_name + ' · ' + n.type + '</h3><button class="btn" onclick="finishTask(\'' + n.id + '\')">完成服务</button></div>').join('') : '<div class="card">没有进行中的服务</div>';
+        document.getElementById('historyList').innerHTML = done.length ? done.map(n => '<div class="card">' + n.type + '</div>').join('') : '<div class="card">暂无历史</div>';
+      });
+    }
+    function enterFamily() {
+      phone = (document.getElementById('gatePhone').value || '').replace(/\s/g, '');
+      if (!phone) { alert('请输入老人电话'); return; }
+      localStorage.setItem('careElderPhone', phone);
+      document.getElementById('tabs').style.display = 'flex';
+      showTab('tasks', document.querySelector('.tab'));
+      startListen();
     }
     function confirmNeed(id) {
-      db.ref('needs/' + id).update({
-        confirm_text: '护理员已看到',
-        confirm_detail: '正在安排帮助',
-        confirmed_by: '护理员',
-        confirmed_at: Date.now()
-      });
+      db.ref('needs/' + id).update({ confirm_text: '护理员已看到', confirm_detail: '正在安排帮助', confirmed_by: '护理员', confirmed_at: Date.now() });
     }
     window.CareAlertAck = function (need) { if (need && need.id) confirmNeed(need.id); };
     function acceptTask(id) {
       confirmNeed(id);
       db.ref('needs/' + id).update({ status: 'accepted' });
-      showTab('doing', document.querySelectorAll('.tab')[1]);
     }
     function finishTask(id) {
-      db.ref('needs/' + id).update({ status: 'completed', confirm_text: '护理员已完成', confirm_detail: '您可以放心' });
-      showTab('history', document.querySelectorAll('.tab')[2]);
+      db.ref('needs/' + id).update({ status: 'completed', confirm_text: '护理员已完成' });
     }
-    db.ref('needs').on('value', function (s) {
-      const items = [];
-      s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
-      items.sort((a,b) => (b.created_at||0)-(a.created_at||0));
-      CareAlert.check(items);
-      const pending = items.filter(n => n.status === 'pending');
-      const doing = items.filter(n => n.status === 'accepted');
-      const done = items.filter(n => n.status === 'completed');
-      document.getElementById('taskList').innerHTML = pending.length ? pending.map(n => {
-        const smsText = (n.elder_name || '') + '需要帮助：' + n.type;
-        return '<div class="card urgent"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + n.elder_name + ' · ' + n.type + '</h3><div class="meta">' + formatTime(n.created_at) + '</div><div class="ability-box">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn" onclick="confirmNeed(\'' + n.id + '\')">已确认</button><button class="btn" onclick="acceptTask(\'' + n.id + '\')">接单</button><button class="btn btn-tel" onclick="FamilyBind.tel(\'' + (bind.elderPhone||'') + '\')">打给老人</button><button class="btn btn-sms" onclick="FamilyBind.sms(\'' + (bind.familyPhone||'') + '\',\'' + smsText + '\')">短信家属</button></div></div>';
-      }).join('') : '<div class="card">暂无待处理任务</div>';
-      document.getElementById('doingList').innerHTML = doing.length ? doing.map(n => '<div class="card"><h3>' + n.elder_name + ' · ' + n.type + '</h3><button class="btn" onclick="finishTask(\'' + n.id + '\')">完成服务</button></div>').join('') : '<div class="card">当前没有进行中的服务</div>';
-      document.getElementById('historyList').innerHTML = done.length ? done.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.elder_name + ' · ' + n.type + '</div>').join('') : '<div class="card">暂无历史</div>';
-    });
+    if (phone) {
+      document.getElementById('gatePhone').value = phone;
+      enterFamily();
+    }
   </script>
 </body>
 </html>

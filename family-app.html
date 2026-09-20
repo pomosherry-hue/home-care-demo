@@ -4,57 +4,56 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>居家介护 - 家属端</title>
-  <link rel="manifest" href="manifest.json">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 96px; }
+    body { font-family: -apple-system, sans-serif; background: #f5f5f5; min-height: 100vh; padding-bottom: 96px; }
     .header { background: #1976d2; color: #fff; padding: 16px; text-align: center; font-weight: 600; }
-    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; border-top: 1px solid #eee; padding-bottom: env(safe-area-inset-bottom); z-index: 30; }
-    .tab { flex: 1; padding: 14px 0; border: none; background: none; color: #888; font-size: 15px; }
+    .tab-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; display: flex; padding-bottom: env(safe-area-inset-bottom); }
+    .tab { flex: 1; padding: 14px 0; border: none; background: none; color: #888; }
     .tab.active { color: #1976d2; font-weight: 700; }
     .screen { display: none; padding: 16px; }
     .screen.active { display: block; }
     .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-    .card.urgent { border-left: 5px solid #d32f2f; }
-    .ability { background: #fff8e1; color: #ef6c00; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-top: 10px; }
     input { width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-    label { font-size: 13px; color: #666; }
-    #enableAlert, .save-btn, .go-bind { width: 100%; padding: 14px; border: none; border-radius: 12px; font-size: 16px; margin-bottom: 12px; }
+    .btn, .save-btn, .enter, #enableAlert, .go-bind { width: 100%; padding: 14px; border: none; border-radius: 12px; margin-bottom: 8px; font-size: 16px; }
+    .enter, .save-btn { background: #1976d2; color: #fff; }
     #enableAlert { background: #c62828; color: #fff; }
     .go-bind { background: #1565c0; color: #fff; }
-    .save-btn { background: #1976d2; color: #fff; }
-    .btn-row { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
-    .btn { flex: 1; min-width: 28%; padding: 12px 6px; border: none; border-radius: 10px; font-size: 14px; }
+    .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+    .btn { flex: 1; width: auto; margin: 0; font-size: 14px; }
     .btn-ok { background: #2e7d32; color: #fff; }
     .btn-tel { background: #1565c0; color: #fff; }
     .btn-sms { background: #00897b; color: #fff; }
-    .need-icon { font-size: 42px; }
-    .status.new { background: #ffebee; color: #c62828; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-    .status.done { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
   </style>
 </head>
 <body>
   <div class="header">居家介护 · 家属端</div>
-  <div id="home" class="screen active">
+  <div id="gate" class="screen active">
+    <div class="card">
+      <div style="font-weight:600">输入老人电话才能看这一家</div>
+      <input id="gatePhone" type="tel" placeholder="老人电话">
+      <button class="enter" onclick="enterFamily()">进入这一家</button>
+    </div>
+  </div>
+  <div id="home" class="screen">
     <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
     <button class="go-bind" onclick="openBind()">绑定家庭电话</button>
     <div id="needList" class="card">正在连接…</div>
   </div>
   <div id="bind" class="screen">
     <div class="card">
-      <div style="font-weight:600;margin-bottom:8px;">用老人电话号绑定一家人</div>
       <label>老人姓名</label><input id="elderName" placeholder="张爷爷">
-      <label>老人电话</label><input id="elderPhone" type="tel" placeholder="13800000000">
+      <label>老人电话</label><input id="elderPhone" type="tel">
       <label>家属姓名</label><input id="familyName" placeholder="女儿">
-      <label>家属电话</label><input id="familyPhone" type="tel" placeholder="13900000000">
-      <label>护理员姓名</label><input id="caregiverName" placeholder="李护士">
-      <label>护理员电话</label><input id="caregiverPhone" type="tel" placeholder="13700000000">
+      <label>家属电话</label><input id="familyPhone" type="tel">
+      <label>护理员姓名</label><input id="caregiverName">
+      <label>护理员电话</label><input id="caregiverPhone" type="tel">
       <button class="save-btn" onclick="saveBind()">保存绑定</button>
-      <p id="bindMsg" style="margin-top:10px;color:#2e7d32;"></p>
+      <p id="bindMsg" style="color:#2e7d32"></p>
     </div>
   </div>
   <div id="records" class="screen"><div id="recordList" class="card">暂无记录</div></div>
-  <div class="tab-bar">
+  <div class="tab-bar" id="tabs" style="display:none">
     <button class="tab active" id="tabHome" onclick="showTab('home', this)">通知</button>
     <button class="tab" id="tabBind" onclick="showTab('bind', this)">家庭</button>
     <button class="tab" onclick="showTab('records', this)">记录</button>
@@ -67,71 +66,84 @@
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
+    let phone = localStorage.getItem('familyElderPhone') || '';
     let bind = {};
-    FamilyBind.load(db, function (data) {
-      bind = data;
-      ['elderName','elderPhone','familyName','familyPhone','caregiverName','caregiverPhone'].forEach(function (k) {
-        var el = document.getElementById(k);
-        if (el && data[k]) el.value = data[k];
-      });
-    });
-    function openBind() { showTab('bind', document.getElementById('tabBind')); }
-    function saveBind() {
-      const data = {
-        elderName: document.getElementById('elderName').value.trim() || '张爷爷',
-        elderPhone: document.getElementById('elderPhone').value.trim(),
-        familyName: document.getElementById('familyName').value.trim() || '女儿',
-        familyPhone: document.getElementById('familyPhone').value.trim(),
-        caregiverName: document.getElementById('caregiverName').value.trim() || '护理员',
-        caregiverPhone: document.getElementById('caregiverPhone').value.trim()
-      };
-      FamilyBind.save(db, data).then(function () {
-        document.getElementById('bindMsg').innerText = '已保存';
-      });
-    }
+    let started = false;
     function showTab(id, el) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
       document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
       if (el) el.classList.add('active');
     }
-    function formatTime(ts) {
-      if (!ts) return '';
-      const d = new Date(ts);
-      return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+    function startListen() {
+      if (started) return;
+      started = true;
+      FamilyBind.load(db, phone, function (data) {
+        bind = data || {};
+        ['elderName','elderPhone','familyName','familyPhone','caregiverName','caregiverPhone'].forEach(function (k) {
+          var el = document.getElementById(k);
+          if (el && bind[k]) el.value = bind[k];
+        });
+        if (!document.getElementById('elderPhone').value) document.getElementById('elderPhone').value = phone;
+      });
+      db.ref('needs').on('value', function (s) {
+        const items = [];
+        s.forEach(function (c) {
+          const n = Object.assign({id: c.key}, c.val());
+          if (String(n.elder_phone || '') === phone) items.push(n);
+        });
+        items.sort((a,b) => (b.created_at||0)-(a.created_at||0));
+        CareAlert.check(items);
+        if (!items.length) {
+          document.getElementById('needList').innerHTML = '这一家还没有新需求。';
+          document.getElementById('recordList').innerHTML = '暂无记录';
+          return;
+        }
+        document.getElementById('needList').innerHTML = items.map(n => {
+          const done = !!n.confirm_text;
+          const smsText = (n.elder_name || '') + '需要帮助：' + n.type;
+          return '<div class="card"><h3>' + (n.elder_name||'') + ' · ' + n.type + '</h3><div>' + (n.confirm_text || '新需求') + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\')">已确认</button><button class="btn btn-tel" onclick="FamilyBind.tel(\'' + (bind.elderPhone||phone) + '\')">打给老人</button><button class="btn btn-sms" onclick="FamilyBind.sms(\'' + (bind.caregiverPhone||'') + '\',\'' + smsText + '\')">短信护理员</button></div></div>';
+        }).join('');
+        document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + n.type + ' · ' + (n.confirm_text || n.status) + '</div>').join('');
+      });
     }
-    function abilityHtml(snap) {
-      if (!snap) return '';
-      return Object.keys(snap).map(k => k + '：' + snap[k]).join('<br>');
+    function enterFamily() {
+      phone = (document.getElementById('gatePhone').value || '').replace(/\s/g, '');
+      if (!phone) { alert('请输入老人电话'); return; }
+      localStorage.setItem('familyElderPhone', phone);
+      document.getElementById('tabs').style.display = 'flex';
+      showTab('home', document.getElementById('tabHome'));
+      startListen();
     }
-    function confirmNeed(id, who) {
+    function openBind() { showTab('bind', document.getElementById('tabBind')); }
+    function saveBind() {
+      const data = {
+        elderName: document.getElementById('elderName').value.trim() || '张爷爷',
+        elderPhone: document.getElementById('elderPhone').value.trim() || phone,
+        familyName: document.getElementById('familyName').value.trim() || '女儿',
+        familyPhone: document.getElementById('familyPhone').value.trim(),
+        caregiverName: document.getElementById('caregiverName').value.trim() || '护理员',
+        caregiverPhone: document.getElementById('caregiverPhone').value.trim()
+      };
+      FamilyBind.save(db, data).then(function () {
+        phone = data.elderPhone;
+        localStorage.setItem('familyElderPhone', phone);
+        document.getElementById('bindMsg').innerText = '已保存';
+      }).catch(function (e) { alert(e.message); });
+    }
+    function confirmNeed(id) {
       db.ref('needs/' + id).update({
-        confirm_text: who + '已看到',
+        confirm_text: (bind.familyName || '女儿') + '已看到',
         confirm_detail: '您不用担心',
-        confirmed_by: who,
+        confirmed_by: bind.familyName || '女儿',
         confirmed_at: Date.now()
       });
     }
-    window.CareAlertAck = function (need) {
-      if (need && need.id) confirmNeed(need.id, bind.familyName || '女儿');
-    };
-    db.ref('needs').on('value', function (s) {
-      const items = [];
-      s.forEach(function (c) { items.push(Object.assign({id: c.key}, c.val())); });
-      items.sort((a,b) => (b.created_at||0)-(a.created_at||0));
-      CareAlert.check(items);
-      if (!items.length) {
-        document.getElementById('needList').innerHTML = '还没有新需求。';
-        document.getElementById('recordList').innerHTML = '暂无记录';
-        return;
-      }
-      document.getElementById('needList').innerHTML = items.map(n => {
-        const done = !!n.confirm_text;
-        const smsText = (n.elder_name || '张爷爷') + '需要帮助：' + n.type;
-        return '<div class="card' + (!done ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (done?'done':'new') + '">' + (n.confirm_text || '新需求') + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\',\'' + (bind.familyName||'女儿') + '\')">已确认</button><button class="btn btn-tel" onclick="FamilyBind.tel(\'' + (bind.elderPhone||'') + '\')">打给老人</button><button class="btn btn-sms" onclick="FamilyBind.sms(\'' + (bind.caregiverPhone||'') + '\',\'' + smsText + '\')">短信护理员</button></div></div>';
-      }).join('');
-      document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.type + ' · ' + (n.confirm_text || n.status) + '</div>').join('');
-    });
+    window.CareAlertAck = function (need) { if (need && need.id) confirmNeed(need.id); };
+    if (phone) {
+      document.getElementById('gatePhone').value = phone;
+      enterFamily();
+    }
   </script>
 </body>
 </html>
