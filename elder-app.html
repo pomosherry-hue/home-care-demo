@@ -38,7 +38,7 @@
     <button class="enter" onclick="enterFamily()">进入</button>
   </div>
   <div id="home" class="screen">
-    <div class="header" id="homeTitle">需要什么？</div>
+    <div class="header">需要什么？</div>
     <div class="btn-grid">
       <button class="big-btn red" onclick="goTo('body')"><span class="icon">😣</span>疼</button>
       <button class="big-btn blue" onclick="sendDirect('喝水')"><span class="icon">💧</span>喝水</button>
@@ -76,6 +76,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="family-bind.js"></script>
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
@@ -108,6 +109,15 @@
       if (type === '翻身') return { 翻身: a['翻身'], 坐起: a['坐起'] };
       if (type === '大小便') return { 如厕: a['如厕'], 坐起: a['坐起'], 转移: a['转移'] };
       return { 沟通: a['沟通'] };
+    }
+    function openFamilySms(type) {
+      db.ref(FamilyBind.path(phone)).once('value').then(function (s) {
+        const b = s.val() || {};
+        const to = b.familyPhone || b.caregiverPhone;
+        if (!to) return;
+        const text = (b.elderName || elder.name || '老人') + '需要帮助：' + type;
+        location.href = 'sms:' + to + '?body=' + encodeURIComponent(text);
+      });
     }
     function watchNeed(id) {
       if (currentNeedRef) currentNeedRef.off();
@@ -142,10 +152,11 @@
         watchNeed(ref.key);
         document.getElementById('okIcon').innerText = '✅';
         document.getElementById('okTitle').innerText = '已发送！';
-        document.getElementById('waitLine').innerText = '请等一等，家人看到会告诉您。';
+        document.getElementById('waitLine').innerText = '短信已准备好，请点发送。';
         document.getElementById('confirmLine').innerText = '';
         goTo('success');
         backHomeSoon(20000);
+        openFamilySms(type);
       });
     }
     function selectBody(part) { sendNeed(part + '部疼痛').catch(function(e){ if(e&&e.message) alert(e.message); }); }
