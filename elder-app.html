@@ -24,8 +24,9 @@
     .action-row { display: flex; gap: 12px; padding: 12px 0; }
     .btn-back { flex: 1; padding: 16px; font-size: 18px; border-radius: 14px; border: none; background: #eee; }
     .success { text-align: center; margin: auto; }
-    .success .check { font-size: 80px; color: #4caf50; }
-    .back-home { background: #1976d2; color: white; border: none; padding: 16px 40px; font-size: 18px; border-radius: 14px; }
+    .success .check { font-size: 80px; }
+    .back-home { background: #1976d2; color: white; border: none; padding: 16px 40px; font-size: 18px; border-radius: 14px; margin-top: 20px; }
+    #confirmLine { font-size: 24px; color: #2e7d32; font-weight: 700; margin-top: 12px; min-height: 32px; }
   </style>
 </head>
 <body>
@@ -47,7 +48,7 @@
     <div class="header">哪里疼？</div>
     <div class="body-map">
       <button class="body-btn" onclick="selectBody('头')">头</button>
-      <button class="body-btn" onclick="selectBody('脖子')">脖子</button>
+      <button class="body-btn" onclick="selectBody('脗子')">脗子</button>
       <button class="body-btn" onclick="selectBody('胸')">胸</button>
       <button class="body-btn" onclick="selectBody('肚子')">肚子</button>
       <button class="body-btn" onclick="selectBody('腰')">腰</button>
@@ -59,9 +60,10 @@
   </div>
   <div id="success" class="screen">
     <div class="success">
-      <div class="check">✅</div>
-      <h2>已发送！</h2>
-      <p>家属和护理员会马上看到。</p>
+      <div class="check" id="okIcon">✅</div>
+      <h2 id="okTitle">已发送！</h2>
+      <p id="waitLine">请等一等，家人看到会告诉您。</p>
+      <p id="confirmLine"></p>
       <button class="back-home" onclick="goTo('home')">返回首页</button>
     </div>
   </div>
@@ -72,6 +74,7 @@
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
     const elder = window.ELDER_DEMO;
+    let currentNeedRef = null;
     function goTo(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -84,6 +87,19 @@
       if (type === '大小便') return { 如厕: a['如厕'], 坐起: a['坐起'], 转移: a['转移'] };
       return { 沟通: a['沟通'] };
     }
+    function watchNeed(id) {
+      if (currentNeedRef) currentNeedRef.off();
+      currentNeedRef = db.ref('needs/' + id);
+      currentNeedRef.on('value', function (s) {
+        const n = s.val() || {};
+        if (n.confirm_text) {
+          document.getElementById('okIcon').innerText = '👍';
+          document.getElementById('okTitle').innerText = n.confirm_text;
+          document.getElementById('waitLine').innerText = '您不用再操作。';
+          document.getElementById('confirmLine').innerText = n.confirm_detail || '';
+        }
+      });
+    }
     function sendNeed(type) {
       const ref = db.ref('needs').push();
       return ref.set({
@@ -94,14 +110,23 @@
         type: type,
         status: 'pending',
         created_at: Date.now(),
-        ability_snapshot: relatedAbility(type)
+        ability_snapshot: relatedAbility(type),
+        confirm_text: '',
+        confirm_detail: ''
+      }).then(function () {
+        watchNeed(ref.key);
+        document.getElementById('okIcon').innerText = '✅';
+        document.getElementById('okTitle').innerText = '已发送！';
+        document.getElementById('waitLine').innerText = '请等一等，家人看到会告诉您。';
+        document.getElementById('confirmLine').innerText = '';
+        goTo('success');
       });
     }
     function selectBody(part) {
-      sendNeed(part + '部疼痛').then(function(){ goTo('success'); }).catch(function(e){ alert('发送失败：' + e.message); });
+      sendNeed(part + '部疼痛').catch(function (e) { alert('发送失败：' + e.message); });
     }
     function sendDirect(need) {
-      sendNeed(need).then(function(){ goTo('success'); }).catch(function(e){ alert('发送失败：' + e.message); });
+      sendNeed(need).catch(function (e) { alert('发送失败：' + e.message); });
     }
   </script>
 </body>
