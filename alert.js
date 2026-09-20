@@ -57,10 +57,13 @@ window.CareAlert = (function () {
     el.innerHTML = '<div style="font-size:96px;line-height:1;">' + typeIcon(need.type) + '</div>' +
       '<div style="font-size:28px;font-weight:700;margin:16px 0 8px;">' + (need.elder_name || '老人') + '</div>' +
       '<div style="font-size:32px;font-weight:700;">' + (need.type || '新需求') + '</div>' +
-      '<div style="margin-top:16px;">请马上查看</div>' +
-      '<button id="closeAlert" style="margin-top:28px;padding:14px 28px;font-size:18px;border:none;border-radius:12px;background:#fff;color:#c62828;">知道了</button>';
+      '<div style="margin-top:16px;">点一下就会告诉老人</div>' +
+      '<button id="closeAlert" style="margin-top:28px;padding:16px 32px;font-size:20px;border:none;border-radius:12px;background:#fff;color:#c62828;">已收到</button>';
     document.body.appendChild(el);
-    document.getElementById('closeAlert').onclick = function () { el.remove(); };
+    document.getElementById('closeAlert').onclick = function () {
+      if (typeof window.CareAlertAck === 'function') window.CareAlertAck(need);
+      el.remove();
+    };
   }
 
   function notifyNew(need) {
