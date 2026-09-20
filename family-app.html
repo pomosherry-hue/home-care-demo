@@ -15,10 +15,11 @@
     .screen.active { display: block; }
     .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     input { width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-    .btn, .save-btn, .enter, #enableAlert, .go-bind { width: 100%; padding: 14px; border: none; border-radius: 12px; margin-bottom: 8px; font-size: 16px; }
+    .btn, .save-btn, .enter, #enableAlert, .go-bind, .reset { width: 100%; padding: 14px; border: none; border-radius: 12px; margin-bottom: 8px; font-size: 16px; }
     .enter, .save-btn { background: #1976d2; color: #fff; }
     #enableAlert { background: #c62828; color: #fff; }
     .go-bind { background: #1565c0; color: #fff; }
+    .reset { background: #eee; color: #333; }
     .btn-row { display: flex; gap: 8px; margin-top: 12px; }
     .btn { flex: 1; width: auto; margin: 0; font-size: 14px; }
     .btn-ok { background: #2e7d32; color: #fff; }
@@ -38,6 +39,7 @@
   <div id="home" class="screen">
     <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
     <button class="go-bind" onclick="openBind()">绑定家庭电话</button>
+    <button class="reset" onclick="localStorage.removeItem('familyElderPhone');location.reload()">重新输入电话</button>
     <div id="needList" class="card">正在连接…</div>
   </div>
   <div id="bind" class="screen">
@@ -100,7 +102,6 @@
           return;
         }
         document.getElementById('needList').innerHTML = items.map(n => {
-          const done = !!n.confirm_text;
           const smsText = (n.elder_name || '') + '需要帮助：' + n.type;
           return '<div class="card"><h3>' + (n.elder_name||'') + ' · ' + n.type + '</h3><div>' + (n.confirm_text || '新需求') + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\')">已确认</button><button class="btn btn-tel" onclick="FamilyBind.tel(\'' + (bind.elderPhone||phone) + '\')">打给老人</button><button class="btn btn-sms" onclick="FamilyBind.sms(\'' + (bind.caregiverPhone||'') + '\',\'' + smsText + '\')">短信护理员</button></div></div>';
         }).join('');
