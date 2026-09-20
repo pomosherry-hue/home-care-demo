@@ -32,7 +32,6 @@
     .btn { flex: 1; min-width: 30%; padding: 12px 8px; border: none; border-radius: 10px; font-size: 14px; }
     .btn-ok { background: #2e7d32; color: #fff; }
     .btn-wx { background: #07c160; color: #fff; }
-    .btn-tel { background: #eee; color: #333; }
   </style>
 </head>
 <body>
@@ -92,13 +91,14 @@
         confirmed_at: Date.now()
       });
     }
+    window.CareAlertAck = function (need) {
+      if (need && need.id) confirmNeed(need.id, '女儿');
+    };
     function copyWechat(name, type) {
       const text = name + '需要帮助：' + type + '。请家里人看一下。';
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function(){ alert('已复制，去微信粘贴到家庭群即可'); }).catch(function(){ prompt('请手动复制', text); });
-      } else {
-        prompt('请手动复制', text);
-      }
+      } else prompt('请手动复制', text);
     }
     db.ref('needs').on('value', function (s) {
       const items = [];
@@ -113,7 +113,7 @@
       document.getElementById('needList').innerHTML = items.map(n => {
         const pending = n.status === 'pending';
         const done = !!n.confirm_text;
-        return '<div class="card' + (pending && !done ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (done?'done':'new') + '">' + (n.confirm_text || '新需求') + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\',\'女儿\')">已确认</button><button class="btn btn-wx" onclick="copyWechat(\'' + (n.elder_name||'张爷爷') + '\',\'' + n.type + '\')">复制到微信</button></div></div>';
+        return '<div class="card' + (pending && !done ? ' urgent' : '') + '"><div class="need-icon">' + CareAlert.typeIcon(n.type) + '</div><h3>' + (n.elder_name||'张爷爷') + ' <span class="status ' + (done?'done':'new') + '">' + (n.confirm_text || '新需求') + '</span></h3><div>' + formatTime(n.created_at) + '</div><div>请求：<strong>' + n.type + '</strong></div><div class="ability">' + abilityHtml(n.ability_snapshot) + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\',\'女儿\')">已确认</button></div></div>';
       }).join('');
       document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + formatTime(n.created_at) + ' · ' + n.type + ' · ' + (n.confirm_text || n.status) + '</div>').join('');
     });
