@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "families": {
+      "$phone": {
+        ".read": "auth != null && (auth.token.phone === $phone || root.child('families').child($phone).child('familyPhone').val() === auth.token.phone || root.child('families').child($phone).child('caregiverPhone').val() === auth.token.phone)",
+        ".write": "auth != null && (auth.token.phone === $phone || root.child('families').child($phone).child('familyPhone').val() === auth.token.phone)"
+      }
+    },
+    "needs": {
+      ".read": "auth != null",
+      "$id": {
+        ".read": "auth != null && data.child('elder_phone').val() === auth.token.phone || root.child('families').child(data.child('elder_phone').val()).child('familyPhone').val() === auth.token.phone || root.child('families').child(data.child('elder_phone').val()).child('caregiverPhone').val() === auth.token.phone",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
