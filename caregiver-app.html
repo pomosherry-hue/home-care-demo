@@ -21,6 +21,7 @@
     .btn { background: #2e7d32; color: #fff; flex: 1; width: auto; }
     .btn-tel { background: #1565c0; }
     .btn-row { display: flex; gap: 8px; margin-top: 12px; }
+    .change-link { display: block; text-align: center; margin-top: 14px; color: #1565c0; font-size: 15px; text-decoration: none; }
   </style>
 </head>
 <body>
@@ -35,6 +36,7 @@
   <div id="tasks" class="screen">
     <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
     <div id="taskList" class="card">正在连接…</div>
+    <a class="change-link" onclick="changePhone()">输错了？重新输入老人电话</a>
   </div>
   <div id="doing" class="screen"><div id="doingList" class="card">当前没有进行中的服务</div></div>
   <div id="history" class="screen"><div id="historyList" class="card">暂无历史</div></div>
@@ -87,6 +89,15 @@
       document.getElementById('tabs').style.display = 'flex';
       showTab('tasks', document.querySelector('.tab'));
       startListen();
+    }
+    function changePhone() {
+      started = false;
+      localStorage.removeItem('careElderPhone');
+      phone = '';
+      document.getElementById('gatePhone').value = '';
+      document.getElementById('tabs').style.display = 'none';
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('gate').classList.add('active');
     }
     function confirmNeed(id) {
       db.ref('needs/' + id).update({ confirm_text: '护理员已看到', confirm_detail: '正在安排帮助', confirmed_by: '护理员', confirmed_at: Date.now() });
