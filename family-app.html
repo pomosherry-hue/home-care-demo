@@ -14,16 +14,12 @@
     .screen { display: none; padding: 16px; }
     .screen.active { display: block; }
     .card { background: #fff; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
-    .wx-box { background: #e8f5e9; border-radius: 16px; padding: 16px; margin-bottom: 12px; }
     input { width: 100%; padding: 12px; margin: 6px 0 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-    .btn, .save-btn, .enter, #enableAlert, .go-bind, .btn-wx { width: 100%; padding: 14px; border: none; border-radius: 12px; margin-bottom: 8px; font-size: 16px; }
+    .save-btn, .enter, #enableAlert, .go-bind { width: 100%; padding: 14px; border: none; border-radius: 12px; margin-bottom: 8px; font-size: 16px; }
     .enter, .save-btn { background: #1976d2; color: #fff; }
     #enableAlert { background: #c62828; color: #fff; }
     .go-bind { background: #1565c0; color: #fff; }
-    .btn-wx { background: #07c160; color: #fff; }
-    .btn-row { display: flex; gap: 8px; margin-top: 12px; }
-    .btn { flex: 1; width: auto; margin: 0; font-size: 14px; }
-    .btn-ok { background: #2e7d32; color: #fff; }
+    .btn-ok { width: 100%; padding: 14px; border: none; border-radius: 12px; background: #2e7d32; color: #fff; font-size: 16px; margin-top: 10px; }
   </style>
 </head>
 <body>
@@ -37,11 +33,6 @@
   </div>
   <div id="home" class="screen">
     <button id="enableAlert" onclick="CareAlert.enable()">点击开启声音提醒</button>
-    <div class="wx-box">
-      <div style="font-weight:700;margin-bottom:8px;">微信通知（免话费）</div>
-      <p style="font-size:14px;color:#333;margin-bottom:10px;">网页不能直接发到微信。有需求时点下面按钮，再打开微信贴到家庭群。</p>
-      <button class="btn-wx" onclick="copyLatest()">复制最新需求到微信</button>
-    </div>
     <button class="go-bind" onclick="openBind()">绑定家庭</button>
     <div id="needList" class="card">正在连接…</div>
   </div>
@@ -66,17 +57,12 @@
   <script src="firebase-config.js"></script>
   <script src="alert.js"></script>
   <script src="family-bind.js"></script>
-  <script src="v2-wechat.js"></script>
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
     let phone = localStorage.getItem('familyElderPhone') || '';
     let bind = {};
     let started = false;
-    let latestWx = '';
-    function copyLatest() {
-      copyWechat(latestWx || '老人发出了帮助需求，请打开介护页查看。');
-    }
     function showTab(id, el) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -102,16 +88,14 @@
         });
         items.sort((a,b) => (b.created_at||0)-(a.created_at||0));
         CareAlert.check(items);
-        if (items[0]) latestWx = (items[0].elder_name || '') + '需要帮助：' + items[0].type;
         if (!items.length) {
           document.getElementById('needList').innerHTML = '这一家还没有新需求。';
           document.getElementById('recordList').innerHTML = '暂无记录';
           return;
         }
-        document.getElementById('needList').innerHTML = items.map(n => {
-          const wx = (n.elder_name || '') + '需要帮助：' + n.type;
-          return '<div class="card"><h3>' + (n.elder_name||'') + ' · ' + n.type + '</h3><div>' + (n.confirm_text || '新需求') + '</div><div class="btn-row"><button class="btn btn-ok" onclick="confirmNeed(\'' + n.id + '\')">已确认</button><button class="btn btn-wx" onclick="copyWechat(\'' + wx + '\')">复制到微信</button></div></div>';
-        }).join('');
+        document.getElementById('needList').innerHTML = items.map(n =>
+          '<div class="card"><h3>' + (n.elder_name||'') + ' · ' + n.type + '</h3><div>' + (n.confirm_text || '新需求') + '</div><button class="btn-ok" onclick="confirmNeed(\'' + n.id + '\')">已确认</button></div>'
+        ).join('');
         document.getElementById('recordList').innerHTML = items.map(n => '<div class="card">' + n.type + ' · ' + (n.confirm_text || n.status) + '</div>').join('');
       });
     }
