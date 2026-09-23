@@ -55,9 +55,9 @@
   </div>
   <div id="urgent" class="screen">
     <div class="header">请选一个</div>
-    <p class="note">这一页不是 120。真的危险请直接打电话。</p>
+    <p class="note">日常不产生话费。真的危险才打 120 / 911。</p>
     <button class="choice family" onclick="needFamilyNow()">需要家人马上来</button>
-    <button class="choice sos" onclick="call120()">拨打 120</button>
+    <button class="choice sos" onclick="callEmergency()">拨打当地急救</button>
     <button class="btn-back" onclick="goTo('home')">返回</button>
   </div>
   <div id="body" class="screen">
@@ -78,14 +78,13 @@
     <div class="success">
       <div id="okIcon" style="font-size:80px">✅</div>
       <h2 id="okTitle">已发送！</h2>
-      <p id="waitLine">请等一等</p>
+      <p id="waitLine">家人会在网页里看到</p>
       <p id="confirmLine"></p>
     </div>
   </div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="family-bind.js"></script>
   <script>
     firebase.initializeApp(window.FIREBASE_CONFIG);
     const db = firebase.database();
@@ -113,27 +112,14 @@
     }
     function relatedAbility(type) {
       const a = elder.ability;
-      if (type.indexOf('疼') >= 0) return { 翻身: a['翻身'], 沟通: a['沟通'] };
       if (type === '喝水') return { 喝水: a['喝水'] };
       return { 沟通: a['沟通'] };
     }
-    function call120() { location.href = 'tel:120'; }
-    function needFamilyNow() {
-      sendNeed('需要家人马上来').then(function () {
-        db.ref(FamilyBind.path(phone)).once('value').then(function (s) {
-          const b = s.val() || {};
-          if (b.familyPhone) location.href = 'tel:' + b.familyPhone;
-        });
-      });
+    function callEmergency() {
+      var n = prompt('当地急救号（加拿大填 911，中国大陆填 120）', '911');
+      if (n) location.href = 'tel:' + n.replace(/\s/g, '');
     }
-    function openFamilySms(type) {
-      db.ref(FamilyBind.path(phone)).once('value').then(function (s) {
-        const b = s.val() || {};
-        const to = b.familyPhone || b.caregiverPhone;
-        if (!to) return;
-        location.href = 'sms:' + to + '?body=' + encodeURIComponent((b.elderName || '老人') + '需要帮助：' + type);
-      });
-    }
+    function needFamilyNow() { sendNeed('需要家人马上来'); }
     function watchNeed(id) {
       if (currentNeedRef) currentNeedRef.off();
       currentNeedRef = db.ref('needs/' + id);
@@ -156,10 +142,9 @@
       }).then(function () {
         watchNeed(ref.key);
         document.getElementById('okTitle').innerText = '已通知家人';
-        document.getElementById('waitLine').innerText = '这不是 120。';
+        document.getElementById('waitLine').innerText = '不产生短信话费';
         goTo('success');
         backHomeSoon(20000);
-        if (type !== '需要家人马上来') openFamilySms(type);
       });
     }
     function selectBody(part) { sendNeed(part + '部疼痛'); }
