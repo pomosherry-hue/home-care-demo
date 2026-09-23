@@ -9,7 +9,9 @@
     body { font-family: -apple-system, sans-serif; background: #f5f5f5; height: 100vh; }
     .screen { display: none; height: 100dvh; padding: 16px; flex-direction: column; }
     .screen.active { display: flex; }
-    .header { text-align: center; padding: 12px 0 16px; font-size: 22px; font-weight: 600; }
+    .top { display: flex; justify-content: space-between; align-items: center; padding: 4px 0 12px; }
+    .header { text-align: center; padding: 12px 0 16px; font-size: 22px; font-weight: 600; flex: 1; }
+    .set { border: none; background: none; color: #1565c0; font-size: 15px; }
     .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex: 1; }
     .big-btn { background: #fff; border: none; border-radius: 20px; padding: 16px 8px; font-size: 20px; box-shadow: 0 4px 12px rgba(0,0,0,.08); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; }
     .big-btn .icon { font-size: 36px; }
@@ -22,27 +24,26 @@
     .choice { flex: 1; border: none; border-radius: 20px; font-size: 22px; font-weight: 700; margin-bottom: 14px; }
     .choice.family { background: #ef6c00; color: #fff; }
     .choice.sos { background: #c62828; color: #fff; }
-    .note { text-align: center; color: #666; margin-bottom: 12px; }
-    .opt { font-size: 16px; margin: 12px 0; display: flex; align-items: center; gap: 8px; }
+    .note { color: #666; margin: 8px 0 16px; }
+    .opt { font-size: 18px; margin: 16px 0; display: flex; align-items: center; gap: 10px; }
     .body-map { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow-y: auto; }
     .body-btn { width: 85%; padding: 14px; font-size: 20px; border-radius: 14px; border: 2px solid #ddd; background: #fff; }
     .btn-back, .enter { padding: 16px; font-size: 18px; border: none; border-radius: 14px; }
     .btn-back { background: #eee; margin-top: 12px; }
     .enter { background: #1976d2; color: #fff; width: 100%; }
-    input { width: 100%; padding: 16px; font-size: 20px; border: 1px solid #ddd; border-radius: 12px; margin: 12px 0; }
+    input[type=tel] { width: 100%; padding: 16px; font-size: 20px; border: 1px solid #ddd; border-radius: 12px; margin: 12px 0; }
     .success { text-align: center; margin: auto; }
   </style>
 </head>
 <body>
   <div id="gate" class="screen active">
     <div class="header">输入老人电话</div>
-    <p class="note">只要输一次</p>
     <input id="gatePhone" type="tel">
-    <label class="opt"><input id="wxOpt" type="checkbox"> 大按钮发出后打开微信</label>
+    <label class="opt"><input id="wxOpt" type="checkbox"> 发出后打开微信</label>
     <button class="enter" onclick="enterFamily()">进入</button>
   </div>
   <div id="home" class="screen">
-    <div class="header">需要什么？</div>
+    <div class="top"><span></span><div class="header">需要什么？</div><button class="set" onclick="openSet()">设置</button></div>
     <div class="btn-grid">
       <button class="big-btn red" onclick="goTo('body')"><span class="icon">😣</span>疼</button>
       <button class="big-btn blue" onclick="sendDirect('喝水')"><span class="icon">💧</span>喝水</button>
@@ -54,6 +55,14 @@
       <button class="big-btn" onclick="sendDirect('其他')"><span class="icon">💬</span>其他</button>
     </div>
     <button class="emergency" onclick="goTo('urgent')">需要马上帮助</button>
+  </div>
+  <div id="settings" class="screen">
+    <div class="header">设置（家人用）</div>
+    <p class="note">老人日常不用进这一页。</p>
+    <label class="opt"><input id="wxOpt2" type="checkbox"> 点大按钮后打开微信（免短信费）</label>
+    <p class="note">电话只在首页「需要马上帮助 → 拨打当地急救」里，避免误拨产生话费。</p>
+    <button class="enter" onclick="saveSet()">保存</button>
+    <button class="btn-back" onclick="goTo('home')">返回</button>
   </div>
   <div id="urgent" class="screen">
     <div class="header">请选一个</div>
@@ -97,6 +106,15 @@
     function goTo(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
+    }
+    function openSet() {
+      document.getElementById('wxOpt2').checked = wxOn;
+      goTo('settings');
+    }
+    function saveSet() {
+      wxOn = document.getElementById('wxOpt2').checked;
+      localStorage.setItem('elderWxOn', wxOn ? '1' : '0');
+      goTo('home');
     }
     function backHomeSoon(ms) {
       clearTimeout(homeTimer);
