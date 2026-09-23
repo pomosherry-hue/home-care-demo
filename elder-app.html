@@ -23,6 +23,7 @@
     .choice.family { background: #ef6c00; color: #fff; }
     .choice.sos { background: #c62828; color: #fff; }
     .note { text-align: center; color: #666; margin-bottom: 12px; }
+    .opt { font-size: 16px; margin: 12px 0; display: flex; align-items: center; gap: 8px; }
     .body-map { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow-y: auto; }
     .body-btn { width: 85%; padding: 14px; font-size: 20px; border-radius: 14px; border: 2px solid #ddd; background: #fff; }
     .btn-back, .enter { padding: 16px; font-size: 18px; border: none; border-radius: 14px; }
@@ -37,6 +38,7 @@
     <div class="header">输入老人电话</div>
     <p class="note">只要输一次</p>
     <input id="gatePhone" type="tel">
+    <label class="opt"><input id="wxOpt" type="checkbox"> 大按钮发出后打开微信</label>
     <button class="enter" onclick="enterFamily()">进入</button>
   </div>
   <div id="home" class="screen">
@@ -88,8 +90,10 @@
     const db = firebase.database();
     const elder = window.ELDER_DEMO;
     let phone = localStorage.getItem('elderPhone') || '';
+    let wxOn = localStorage.getItem('elderWxOn') === '1';
     let currentNeedRef = null;
     let homeTimer = null;
+    document.getElementById('wxOpt').checked = wxOn;
     function goTo(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -101,7 +105,9 @@
     function enterFamily() {
       phone = (document.getElementById('gatePhone').value || '').replace(/\s/g, '');
       if (!phone) { alert('请输入电话'); return; }
+      wxOn = document.getElementById('wxOpt').checked;
       localStorage.setItem('elderPhone', phone);
+      localStorage.setItem('elderWxOn', wxOn ? '1' : '0');
       goTo('home');
     }
     if (phone) { document.getElementById('gatePhone').value = phone; goTo('home'); }
@@ -123,6 +129,7 @@
     }
     function sendNeed(type) {
       if (!phone) { goTo('gate'); return; }
+      const text = (elder.name || '老人') + '需要帮助：' + type;
       const ref = db.ref('needs').push();
       ref.set({
         id: ref.key, elder_id: elder.id, elder_name: elder.name, elder_phone: phone,
@@ -135,6 +142,10 @@
         document.getElementById('waitLine').innerText = '请等一等';
         goTo('success');
         backHomeSoon(12000);
+        if (wxOn) {
+          if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).catch(function(){});
+          setTimeout(function () { location.href = 'weixin://'; }, 400);
+        }
       });
     }
     function selectBody(part) { sendNeed(part + '部疼痛'); }
