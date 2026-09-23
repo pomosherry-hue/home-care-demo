@@ -22,7 +22,6 @@
     .choice { flex: 1; border: none; border-radius: 20px; font-size: 22px; font-weight: 700; margin-bottom: 14px; }
     .choice.family { background: #ef6c00; color: #fff; }
     .choice.sos { background: #c62828; color: #fff; }
-    .wx { background: #07c160; color: #fff; border: none; border-radius: 16px; padding: 18px; font-size: 22px; width: 100%; margin-top: 16px; }
     .note { text-align: center; color: #666; margin-bottom: 12px; }
     .body-map { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px; overflow-y: auto; }
     .body-btn { width: 85%; padding: 14px; font-size: 20px; border-radius: 14px; border: 2px solid #ddd; background: #fff; }
@@ -30,14 +29,14 @@
     .btn-back { background: #eee; margin-top: 12px; }
     .enter { background: #1976d2; color: #fff; width: 100%; }
     input { width: 100%; padding: 16px; font-size: 20px; border: 1px solid #ddd; border-radius: 12px; margin: 12px 0; }
-    .success { text-align: center; margin: auto; width: 100%; }
+    .success { text-align: center; margin: auto; }
   </style>
 </head>
 <body>
   <div id="gate" class="screen active">
     <div class="header">输入老人电话</div>
     <p class="note">只要输一次</p>
-    <input id="gatePhone" type="tel" placeholder="13800000000">
+    <input id="gatePhone" type="tel">
     <button class="enter" onclick="enterFamily()">进入</button>
   </div>
   <div id="home" class="screen">
@@ -56,8 +55,7 @@
   </div>
   <div id="urgent" class="screen">
     <div class="header">请选一个</div>
-    <p class="note">真的危险才打电话。</p>
-    <button class="choice family" onclick="needFamilyNow()">需要家人马上来</button>
+    <button class="choice family" onclick="sendDirect('需要家人马上来')">需要家人马上来</button>
     <button class="choice sos" onclick="callEmergency()">拨打当地急救</button>
     <button class="btn-back" onclick="goTo('home')">返回</button>
   </div>
@@ -77,11 +75,9 @@
   </div>
   <div id="success" class="screen">
     <div class="success">
-      <div id="okIcon" style="font-size:72px">✅</div>
+      <div style="font-size:80px">✅</div>
       <h2 id="okTitle">已发送</h2>
-      <p id="waitLine">请打开微信发给家人</p>
-      <p id="confirmLine"></p>
-      <button class="wx" onclick="openWechat()">打开微信</button>
+      <p id="waitLine">请等一等</p>
     </div>
   </div>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -94,7 +90,6 @@
     let phone = localStorage.getItem('elderPhone') || '';
     let currentNeedRef = null;
     let homeTimer = null;
-    let lastWxText = '';
     function goTo(id) {
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
       document.getElementById(id).classList.add('active');
@@ -109,24 +104,10 @@
       localStorage.setItem('elderPhone', phone);
       goTo('home');
     }
-    if (phone) {
-      document.getElementById('gatePhone').value = phone;
-      goTo('home');
-    }
-    function relatedAbility(type) {
-      const a = elder.ability || {};
-      return { 沟通: a['沟通'] || '自己可以' };
-    }
+    if (phone) { document.getElementById('gatePhone').value = phone; goTo('home'); }
     function callEmergency() {
-      var n = prompt('当地急救号（加拿大 911，中国 120）', '911');
+      var n = prompt('当地急救号', '911');
       if (n) location.href = 'tel:' + n.replace(/\s/g, '');
-    }
-    function needFamilyNow() { sendNeed('需要家人马上来'); }
-    function openWechat() {
-      if (lastWxText && navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(lastWxText).catch(function () {});
-      }
-      location.href = 'weixin://';
     }
     function watchNeed(id) {
       if (currentNeedRef) currentNeedRef.off();
@@ -135,28 +116,25 @@
         const n = s.val() || {};
         if (n.confirm_text) {
           document.getElementById('okTitle').innerText = n.confirm_text;
-          document.getElementById('waitLine').innerText = '您不用再操作。';
+          document.getElementById('waitLine').innerText = '您不用再操作';
           backHomeSoon(8000);
         }
       });
     }
     function sendNeed(type) {
-      if (!phone) { goTo('gate'); return Promise.reject(); }
-      lastWxText = (elder.name || '老人') + '需要帮助：' + type;
+      if (!phone) { goTo('gate'); return; }
       const ref = db.ref('needs').push();
-      return ref.set({
+      ref.set({
         id: ref.key, elder_id: elder.id, elder_name: elder.name, elder_phone: phone,
         address: elder.address, type: type, status: 'pending', created_at: Date.now(),
-        ability_snapshot: relatedAbility(type), confirm_text: '', confirm_detail: ''
+        ability_snapshot: { 沟通: (elder.ability && elder.ability['沟通']) || '自己可以' },
+        confirm_text: '', confirm_detail: ''
       }).then(function () {
         watchNeed(ref.key);
-        document.getElementById('okTitle').innerText = '已记下';
-        document.getElementById('waitLine').innerText = '请点绿色键打开微信发给家人';
+        document.getElementById('okTitle').innerText = '已发送';
+        document.getElementById('waitLine').innerText = '请等一等';
         goTo('success');
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-          navigator.clipboard.writeText(lastWxText).catch(function () {});
-        }
-        backHomeSoon(25000);
+        backHomeSoon(12000);
       });
     }
     function selectBody(part) { sendNeed(part + '部疼痛'); }
