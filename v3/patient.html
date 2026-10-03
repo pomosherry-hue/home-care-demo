@@ -2,6 +2,7 @@
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no"><title>患者端</title>
 <style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5}.h{text-align:center;padding:16px;font-size:20px;font-weight:700}.top{display:flex;justify-content:flex-end;padding:8px 16px 0}.g{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}button{border:none;border-radius:16px;background:#fff;padding:22px 8px;font-size:18px}.link{background:none;color:#1565c0;font-size:15px;padding:8px}input{width:100%;padding:14px;font-size:18px;border:1px solid #ddd;border-radius:12px;margin:12px 0}.go{width:calc(100% - 32px);margin:0 16px;background:#1565c0;color:#fff;padding:14px}.note{color:#666;text-align:center;font-size:14px;padding:8px 16px}.card{background:#fff;margin:16px;border-radius:16px;padding:16px;text-align:center}.big{font-size:26px;font-weight:800}.fee{font-size:28px;color:#c62828;font-weight:800;margin:8px 0}img{width:200px;height:200px}#sent{display:none;position:fixed;inset:0;background:#fff;z-index:5;text-align:center;padding-top:28vh;font-size:28px;font-weight:800}</style></head>
 <body>
+<script src="lock.js"></script>
 <div class="top"><button class="link" id="change" style="display:none" onclick="changePhone()">换号</button></div>
 <div class="h">需要什么？</div>
 <div id="gate" style="padding:16px"><input id="phone" placeholder="患者电话"><input id="pname" placeholder="姓名"><button class="go" onclick="enter()">进入</button></div>
