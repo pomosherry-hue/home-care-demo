@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>护理员端</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5;padding-bottom:72px}.h{background:#1b5e20;color:#fff;text-align:center;padding:14px;font-weight:700}.card{background:#fff;border-radius:14px;padding:14px;margin:12px}button{border:none;border-radius:10px;padding:10px;background:#2e7d32;color:#fff}img{width:100%;border-radius:12px;margin-top:8px}.tab{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff}.tab button{flex:1;background:none;color:#888}.tab button.on{color:#1b5e20;font-weight:700}.note{color:#666;font-size:14px;margin-top:6px}.big{font-size:28px;font-weight:800;line-height:1.3}</style></head>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5;padding-bottom:72px}.h{background:#1b5e20;color:#fff;text-align:center;padding:14px;font-weight:700}.card{background:#fff;border-radius:14px;padding:14px;margin:12px}button{border:none;border-radius:10px;padding:12px;background:#2e7d32;color:#fff;width:100%;margin-top:8px}img{width:100%;border-radius:12px;margin-top:8px}.tab{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff}.tab button{flex:1;background:none;color:#888;width:auto;margin:0}.tab button.on{color:#1b5e20;font-weight:700}.note{color:#666;font-size:14px;margin-top:6px}.big{font-size:28px;font-weight:800;line-height:1.3}</style></head>
 <body><div class="h">护理员端</div><div id="app"></div>
 <input id="cam" type="file" accept="image/*" capture="environment" style="display:none">
 <div class="tab"><button class="on" id="t1" onclick="tab('pool',this)">抢单</button><button id="t2" onclick="tab('mine',this)">我的单</button><button id="t3" onclick="tab('income',this)">收入</button></div>
@@ -9,22 +9,24 @@
 <script src="../firebase-config.js"></script>
 <script>
 firebase.initializeApp(window.FIREBASE_CONFIG); var db=firebase.database();
-var me=localStorage.getItem('v3cg')||'', view='pool', orders={}, pendingId='', shareText='';
+var me=localStorage.getItem('v3cg')||'', view='pool', orders={}, pendingId='', lastFile=null, shareText='';
 if(!me){me=prompt('护理员姓名','小周')||'护理员';localStorage.setItem('v3cg',me);}
 function tab(v,el){view=v;document.querySelectorAll('.tab button').forEach(function(b){b.classList.remove('on');});el.classList.add('on');render();}
 function grab(id){db.ref('v3/orders/'+id).update({status:'doing',caregiver:me,grabbed_at:Date.now()});}
 function finish(id){pendingId=id;document.getElementById('cam').click();}
 document.getElementById('cam').onchange=function(e){
   var f=e.target.files&&e.target.files[0]; if(!f||!pendingId) return;
-  var id=pendingId; var url=URL.createObjectURL(f);
-  var o=orders[id]||{};
-  shareText=(o.patient||'')+' '+(o.service||'');
+  lastFile=f; var id=pendingId; var url=URL.createObjectURL(f);
+  var o=orders[id]||{}; shareText=(o.patient||'')+' '+(o.service||'');
   db.ref('v3/orders/'+id).update({status:'reported',photo:true,reported_at:Date.now(),check_text:shareText});
-  if(navigator.clipboard) navigator.clipboard.writeText(shareText).catch(function(){});
-  document.getElementById('app').innerHTML='<div class="card"><div class="big">'+shareText+'</div><img src="'+url+'"><p class="note">这一行已复制。打开微信核对群，先粘贴姓名和服务，再发照片。</p><button onclick="sharePhoto()">打开微信发出</button></div>';
+  document.getElementById('app').innerHTML='<div class="card"><div class="big">'+shareText+'</div><img src="'+url+'"><p class="note">照片不能自动贴进微信。请点下面按钮，在分享里选微信，照片会一起带走。再补一句：'+shareText+'</p><button onclick="sharePhoto()">把照片分享到微信</button></div>';
   e.target.value='';
 };
-function sharePhoto(){location.href='weixin://';}
+function sharePhoto(){
+  if(navigator.share && lastFile){
+    navigator.share({files:[lastFile], title:shareText, text:shareText}).catch(function(){});}
+  else alert('这部手机不能从网页直接把照片传给微信，请截图后发到核对群');
+}
 function render(){var list=Object.keys(orders).map(function(k){return orders[k];});var html='';
 if(view==='pool'){html=list.filter(function(o){return o.status==='open';}).map(function(o){return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+o.phone+'</div><button onclick="grab(\''+o.id+'\')">抢单</button></div>';}).join('')||'<div class="card">暂无可抢单</div>';}
 if(view==='mine'){html=list.filter(function(o){return o.caregiver===me;}).map(function(o){var s=o.status==='doing'?'服务中':o.status==='reported'?'已拍照，等站长确认':o.status==='done'?'站长已确认':'';return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+s+'</div>'+(o.status==='doing'?'<button onclick="finish(\''+o.id+'\')">服务完成</button>':'')+'</div>';}).join('')||'<div class="card">还没有抢到的单</div>';}
