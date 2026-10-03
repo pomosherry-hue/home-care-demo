@@ -1,18 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no"><title>患者端</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5} .h{text-align:center;padding:16px;font-size:20px;font-weight:700}.g{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}button{border:none;border-radius:16px;background:#fff;padding:22px 8px;font-size:18px}input{width:100%;padding:14px;font-size:18px;border:1px solid #ddd;border-radius:12px;margin:12px 0}.go{width:calc(100% - 32px);margin:0 16px;background:#1565c0;color:#fff;padding:14px}.note{color:#888;text-align:center;font-size:13px;padding:8px}</style></head>
-<body><div class="h">需要什么？</div><p class="note">按钮稍后按机构服务再换。这一版先跑通流程。</p>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5}.h{text-align:center;padding:16px;font-size:20px;font-weight:700}.g{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}button{border:none;border-radius:16px;background:#fff;padding:22px 8px;font-size:18px}input{width:100%;padding:14px;font-size:18px;border:1px solid #ddd;border-radius:12px;margin:12px 0}.go{width:calc(100% - 32px);margin:0 16px;background:#1565c0;color:#fff;padding:14px}.note{color:#666;text-align:center;font-size:14px;padding:8px 16px}.card{background:#fff;margin:16px;border-radius:16px;padding:16px;text-align:center}.big{font-size:26px;font-weight:800}.fee{font-size:28px;color:#c62828;font-weight:800;margin:8px 0}img{width:200px;height:200px}</style></head>
+<body><div class="h">需要什么？</div>
 <div id="gate" style="padding:16px"><input id="phone" placeholder="患者电话"><input id="pname" placeholder="姓名"><button class="go" onclick="enter()">进入</button></div>
-<div id="home" class="g" style="display:none"></div><p id="msg" class="note"></p>
+<div id="home" class="g" style="display:none"></div>
+<div id="pay"></div>
+<p class="note">换药 80 元，翻身 40 元，喝水 20 元。做完才出现收款码。</p>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="../firebase-config.js"></script>
 <script>
 firebase.initializeApp(window.FIREBASE_CONFIG); var db=firebase.database();
 var phone=localStorage.getItem('v3phone')||'', name=localStorage.getItem('v3name')||'';
+var fees={'喝水':20,'翻身':40,'换药':80,'其他':50};
 var needs=['喝水','翻身','换药','其他'];
 function enter(){phone=document.getElementById('phone').value.replace(/\s/g,'');name=document.getElementById('pname').value||'患者';if(!phone)return alert('请输入电话');localStorage.setItem('v3phone',phone);localStorage.setItem('v3name',name);show();}
-function show(){document.getElementById('gate').style.display='none';var h=document.getElementById('home');h.style.display='grid';h.innerHTML=needs.map(function(n){return '<button onclick="send(\''+n+'\')">'+n+'</button>';}).join('');}
-function send(type){var ref=db.ref('v3/orders').push();ref.set({id:ref.key,patient:name,phone:phone,service:type,fee:80,commission:25,status:'open',paid:false,payout:'none',created_at:Date.now()}).then(function(){document.getElementById('msg').innerText='已发出：'+type;});}
+function show(){document.getElementById('gate').style.display='none';var h=document.getElementById('home');h.style.display='grid';h.innerHTML=needs.map(function(n){return '<button onclick="send(\''+n+'\')">'+n+'<div style="font-size:13px;color:#888">¥'+fees[n]+'</div></button>';}).join('');listen();}
+function send(type){var ref=db.ref('v3/orders').push();ref.set({id:ref.key,patient:name,phone:phone,service:type,fee:fees[type],commission:Math.round(fees[type]*0.3),status:'open',paid:false,payout:'none',created_at:Date.now()});}
+function listen(){db.ref('v3/orders').on('value',function(s){var html='';s.forEach(function(c){var o=c.val()||{};if(String(o.phone)!==phone)return;if(o.status==='reported'||o.status==='done'){html+='<div class="card"><div class="big">'+o.service+' 已完成</div><div class="fee">请支付 ¥'+(o.fee||0)+'</div>'+(o.paid?'<div>站长已确认收到</div>':'<img src="pay-code.svg" alt="收款码"><div>请家属扫这个机构收款码</div>')+'</div>';}});document.getElementById('pay').innerHTML=html;});}
 if(phone){document.getElementById('phone').value=phone;document.getElementById('pname').value=name;show();}
 </script></body></html>

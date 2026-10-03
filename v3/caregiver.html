@@ -18,19 +18,16 @@ document.getElementById('cam').onchange=function(e){
   var f=e.target.files&&e.target.files[0]; if(!f||!pendingId) return;
   lastFile=f; var id=pendingId; var url=URL.createObjectURL(f);
   var o=orders[id]||{}; var fee=o.fee||80;
-  shareText=(o.patient||'')+' '+(o.service||'')+' 已完成，请扫机构收款码支付 '+fee+'元';
+  shareText=(o.patient||'')+' '+(o.service||'')+' 已完成，请支付 '+fee+'元。收款码在患者端。';
   db.ref('v3/orders/'+id).update({status:'reported',photo:true,reported_at:Date.now(),check_text:(o.patient||'')+' '+(o.service||''),fee:fee});
-  document.getElementById('app').innerHTML='<div class="card"><div class="big">'+(o.patient||'')+' '+(o.service||'')+'</div><div class="fee">请支付 ¥'+fee+'</div><img class="qr" src="pay-code.svg" alt="机构收款码"><img class="shot" src="'+url+'"><p class="note">先给家属看收款码。再点下面，分享照片到微信，并补一句姓名、服务和金额。钱进机构微信，站长看到入账后再标记已支付。</p><button onclick="sharePhoto()">把完成照片分享到微信</button></div>';
+  document.getElementById('app').innerHTML='<div class="card"><div class="big">'+(o.patient||'')+' '+(o.service||'')+'</div><div class="fee">¥'+fee+'</div><img class="qr" src="pay-code.svg" alt="收款码"><p class="note">收款码已同时发到患者端。照片仍留在这里，可分享给站长。</p><img class="shot" src="'+url+'"><button onclick="sharePhoto()">把完成照片分享到微信</button><button onclick="tab(\'mine\',document.getElementById(\'t2\'))">返回我的单</button></div>';
   e.target.value='';
 };
-function sharePhoto(){
-  if(navigator.share && lastFile){navigator.share({files:[lastFile], title:shareText, text:shareText}).catch(function(){});}
-  else alert('请截图后发给家属。收款码请当场给家属扫。');
-}
+function sharePhoto(){if(navigator.share&&lastFile){navigator.share({files:[lastFile],title:shareText,text:shareText}).catch(function(){});}else alert('照片请截图发给站长。收款码请让患者打开患者端。');}
 function render(){var list=Object.keys(orders).map(function(k){return orders[k];});var html='';
-if(view==='pool'){html=list.filter(function(o){return o.status==='open';}).map(function(o){return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+o.phone+'</div><button onclick="grab(\''+o.id+'\')">抢单</button></div>';}).join('')||'<div class="card">暂无可抢单</div>';}
-if(view==='mine'){html=list.filter(function(o){return o.caregiver===me;}).map(function(o){var s=o.status==='doing'?'服务中':o.status==='reported'?'已拍照并出示收款码':o.status==='done'?'站长已确认':'';return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+s+(o.paid?' · 家属已付':'')+'</div>'+(o.status==='doing'?'<button onclick="finish(\''+o.id+'\')">服务完成</button>':'')+'</div>';}).join('')||'<div class="card">还没有抢到的单</div>';}
-if(view==='income'){var mine=list.filter(function(o){return o.caregiver===me&&(o.status==='done'||o.status==='reported');});var sum=mine.filter(function(o){return o.status==='done';}).reduce(function(s,o){return s+(o.commission||0);},0);html='<div class="card"><b>应结 ¥'+sum+'</b><div>只含站长已确认的提成，等发放日</div></div>'+mine.map(function(o){return '<div class="card">'+o.patient+' · '+o.service+' · ¥'+(o.commission||0)+'<div>'+(o.status!=='done'?'等站长确认':o.payout==='paid'?'已发放':'待发放')+'</div></div>';}).join('');}
+if(view==='pool'){html=list.filter(function(o){return o.status==='open';}).map(function(o){return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+o.phone+' · ¥'+(o.fee||0)+'</div><button onclick="grab(\''+o.id+'\')">抢单</button></div>';}).join('')||'<div class="card">暂无可抢单</div>';}
+if(view==='mine'){html=list.filter(function(o){return o.caregiver===me;}).map(function(o){var s=o.status==='doing'?'服务中':o.status==='reported'?'已出示收款码':o.status==='done'?'站长已确认':'';return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+s+(o.paid?' · 已付':'')+'</div>'+(o.status==='doing'?'<button onclick="finish(\''+o.id+'\')">服务完成</button>':'')+'</div>';}).join('')||'<div class="card">还没有抢到的单</div>';}
+if(view==='income'){var mine=list.filter(function(o){return o.caregiver===me&&o.status==='done';});var sum=mine.reduce(function(s,o){return s+(o.commission||0);},0);html='<div class="card"><b>应结 ¥'+sum+'</b><div>提成按实收的三成，等发放日</div></div>'+mine.map(function(o){return '<div class="card">'+o.patient+' · '+o.service+' · ¥'+(o.commission||0)+'<div>'+(o.payout==='paid'?'已发放':'待发放')+'</div></div>';}).join('');}
 document.getElementById('app').innerHTML=html;}
 db.ref('v3/orders').on('value',function(s){orders=s.val()||{};if(!lastFile) render();});
 </script></body></html>
