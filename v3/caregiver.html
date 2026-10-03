@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>护理员端</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5;padding-bottom:72px}.h{background:#1b5e20;color:#fff;text-align:center;padding:14px;font-weight:700}.card{background:#fff;border-radius:14px;padding:14px;margin:12px}button{border:none;border-radius:10px;padding:10px;background:#2e7d32;color:#fff}.tab{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff}.tab button{flex:1;background:none;color:#888}.tab button.on{color:#1b5e20;font-weight:700}input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:10px}</style></head>
+<body><div class="h">护理员端</div><div id="app"></div>
+<div class="tab"><button class="on" id="t1" onclick="tab('pool',this)">抢单</button><button id="t2" onclick="tab('mine',this)">我的单</button><button id="t3" onclick="tab('income',this)">收入</button></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script>
+firebase.initializeApp(window.FIREBASE_CONFIG); var db=firebase.database();
+var me=localStorage.getItem('v3cg')||'', view='pool', orders={};
+if(!me){me=prompt('护理员姓名','小周')||'护理员';localStorage.setItem('v3cg',me);}
+function tab(v,el){view=v;document.querySelectorAll('.tab button').forEach(function(b){b.classList.remove('on');});el.classList.add('on');render();}
+function grab(id){db.ref('v3/orders/'+id).update({status:'doing',caregiver:me,grabbed_at:Date.now()});}
+function render(){var list=Object.keys(orders).map(function(k){return orders[k];});var html='';
+if(view==='pool'){html=list.filter(function(o){return o.status==='open';}).map(function(o){return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+o.phone+'</div><button onclick="grab(\''+o.id+'\')">抢单</button></div>';}).join('')||'<div class="card">暂无可抢单</div>';}
+if(view==='mine'){html=list.filter(function(o){return o.caregiver===me;}).map(function(o){return '<div class="card"><b>'+o.patient+' · '+o.service+'</b><div>'+(o.status==='doing'?'服务中，等机构确认':o.status==='done'?'机构已确认完成':o.status)+'</div></div>';}).join('')||'<div class="card">还没有抢到的单</div>';}
+if(view==='income'){var mine=list.filter(function(o){return o.caregiver===me&&o.status==='done';});var sum=mine.reduce(function(s,o){return s+(o.commission||0);},0);html='<div class="card"><b>应结 ¥'+sum+'</b><div>只含机构已确认完成的提成</div></div>'+mine.map(function(o){return '<div class="card">'+o.patient+' · '+o.service+' · ¥'+(o.commission||0)+'<div>'+(o.payout==='paid'?'已发放':'待发放')+'</div></div>';}).join('');}
+document.getElementById('app').innerHTML=html;}
+db.ref('v3/orders').on('value',function(s){orders=s.val()||{};render();});
+</script></body></html>

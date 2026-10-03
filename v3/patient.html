@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1,user-scalable=no"><title>患者端</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5} .h{text-align:center;padding:16px;font-size:20px;font-weight:700}.g{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}button{border:none;border-radius:16px;background:#fff;padding:22px 8px;font-size:18px}input{width:100%;padding:14px;font-size:18px;border:1px solid #ddd;border-radius:12px;margin:12px 0}.go{width:calc(100% - 32px);margin:0 16px;background:#1565c0;color:#fff;padding:14px}.note{color:#888;text-align:center;font-size:13px;padding:8px}</style></head>
+<body><div class="h">需要什么？</div><p class="note">按钮稍后按机构服务再换。这一版先跑通流程。</p>
+<div id="gate" style="padding:16px"><input id="phone" placeholder="患者电话"><input id="pname" placeholder="姓名"><button class="go" onclick="enter()">进入</button></div>
+<div id="home" class="g" style="display:none"></div><p id="msg" class="note"></p>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="../firebase-config.js"></script>
+<script>
+firebase.initializeApp(window.FIREBASE_CONFIG); var db=firebase.database();
+var phone=localStorage.getItem('v3phone')||'', name=localStorage.getItem('v3name')||'';
+var needs=['喝水','翻身','换药','其他'];
+function enter(){phone=document.getElementById('phone').value.replace(/\s/g,'');name=document.getElementById('pname').value||'患者';if(!phone)return alert('请输入电话');localStorage.setItem('v3phone',phone);localStorage.setItem('v3name',name);show();}
+function show(){document.getElementById('gate').style.display='none';var h=document.getElementById('home');h.style.display='grid';h.innerHTML=needs.map(function(n){return '<button onclick="send(\''+n+'\')">'+n+'</button>';}).join('');}
+function send(type){var ref=db.ref('v3/orders').push();ref.set({id:ref.key,patient:name,phone:phone,service:type,fee:80,commission:25,status:'open',paid:false,payout:'none',created_at:Date.now()}).then(function(){document.getElementById('msg').innerText='已发出：'+type;});}
+if(phone){document.getElementById('phone').value=phone;document.getElementById('pname').value=name;show();}
+</script></body></html>
