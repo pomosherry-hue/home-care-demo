@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>护理员端</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5;padding-bottom:72px}.h{background:#1b5e20;color:#fff;text-align:center;padding:14px;font-weight:700}.card{background:#fff;border-radius:14px;padding:14px;margin:12px}button{border:none;border-radius:10px;padding:12px;background:#2e7d32;color:#fff;width:100%;margin-top:8px}input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:10px}img.shot{width:100%;border-radius:12px;margin-top:8px}img.qr{width:200px;height:200px;display:block;margin:10px auto}.tab{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff}.tab button{flex:1;background:none;color:#888;width:auto;margin:0}.tab button.on{color:#1b5e20;font-weight:700}.note{color:#666;font-size:14px;margin-top:6px}.big{font-size:28px;font-weight:800;line-height:1.3}.fee{font-size:22px;color:#c62828;font-weight:800;text-align:center;margin-top:6px}</style></head>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:-apple-system,sans-serif;background:#f5f5f5;padding-bottom:72px}.h{background:#1b5e20;color:#fff;text-align:center;padding:14px;font-weight:700}.card{background:#fff;border-radius:14px;padding:14px;margin:12px}button{border:none;border-radius:10px;padding:12px;background:#2e7d32;color:#fff;width:100%;margin-top:8px}.gray{background:#eee;color:#222}input{width:100%;padding:12px;margin:8px 0;border:1px solid #ddd;border-radius:10px}img.shot{width:100%;border-radius:12px;margin-top:8px}img.qr{width:200px;height:200px;display:block;margin:10px auto}.tab{position:fixed;bottom:0;left:0;right:0;display:flex;background:#fff}.tab button{flex:1;background:none;color:#888;width:auto;margin:0}.tab button.on{color:#1b5e20;font-weight:700}.note{color:#666;font-size:14px;margin-top:6px}.big{font-size:28px;font-weight:800;line-height:1.3}.fee{font-size:22px;color:#c62828;font-weight:800;text-align:center;margin-top:6px}</style></head>
 <body><div class="h">护理员端</div><div id="app"></div>
 <input id="cam" type="file" accept="image/*" capture="environment" style="display:none">
 <div class="tab" id="tabs" style="display:none"><button class="on" id="t1" onclick="tab('pool',this)">抢单</button><button id="t2" onclick="tab('mine',this)">我的单</button><button id="t3" onclick="tab('income',this)">收入</button></div>
@@ -24,7 +24,7 @@ function login(){
   });
 }
 function logout(){localStorage.removeItem('v3cgPhone'); location.reload();}
-function tab(v,el){view=v;document.querySelectorAll('.tab button').forEach(function(b){b.classList.remove('on');});if(el) el.classList.add('on');render();}
+function tab(v,el){view=v;lastFile=null;document.querySelectorAll('.tab button').forEach(function(b){b.classList.remove('on');});if(el) el.classList.add('on');render();}
 function grab(id){db.ref('v3/orders/'+id).update({status:'doing',caregiver:me,caregiverPhone:phone,grabbed_at:Date.now()});}
 function finish(id){pendingId=id;document.getElementById('cam').click();}
 document.getElementById('cam').onchange=function(e){
@@ -33,10 +33,11 @@ document.getElementById('cam').onchange=function(e){
   var o=orders[id]||{}; var fee=o.fee||80;
   shareText=(o.patient||'')+' '+(o.service||'')+' 已完成，请支付 '+fee+'元。收款码在患者端。';
   db.ref('v3/orders/'+id).update({status:'reported',photo:true,reported_at:Date.now(),check_text:(o.patient||'')+' '+(o.service||''),fee:fee});
-  document.getElementById('app').innerHTML='<div class="card"><div class="big">'+(o.patient||'')+' '+(o.service||'')+'</div><div class="fee">¥'+fee+'</div><img class="qr" src="pay-code.svg" alt="收款码"><p class="note">收款码已发到患者端。照片可分享给站长。</p><img class="shot" src="'+url+'"><button onclick="sharePhoto()">把完成照片分享到微信</button><button onclick="tab(\'mine\',document.getElementById(\'t2\'))">返回我的单</button></div>';
+  document.getElementById('app').innerHTML='<div class="card"><div class="big">'+(o.patient||'')+' '+(o.service||'')+'</div><div class="fee">¥'+fee+'</div><img class="qr" src="pay-code.svg" alt="收款码"><p class="note">网页拍照不会自动进相册。请点下面保存，在分享里选「储存图像」。</p><img class="shot" src="'+url+'"><button onclick="savePhoto()">保存到相册</button><button class="gray" onclick="sharePhoto()">分享给站长微信</button><button class="gray" onclick="tab(\'mine\',document.getElementById(\'t2\'))">返回我的单</button></div>';
   e.target.value='';
 };
-function sharePhoto(){if(navigator.share&&lastFile){navigator.share({files:[lastFile],title:shareText,text:shareText}).catch(function(){});}}
+function savePhoto(){sharePhoto();}
+function sharePhoto(){if(navigator.share&&lastFile){navigator.share({files:[lastFile],title:shareText,text:shareText}).catch(function(){});}else alert('请长按照片，选储存图像');}
 function render(){
   if(!ready){document.getElementById('app').innerHTML='<div class="card"><b>用手机号登录</b><p class="note">只有站长录入过的号码能进。</p><input id="cgPhone" placeholder="护理员手机号" value="'+phone+'"><button onclick="login()">登录</button></div>';return;}
   var list=Object.keys(orders).map(function(k){return orders[k];});var html='<div class="card">'+me+' · '+phone+' <button onclick="logout()">换号</button></div>';
