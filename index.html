@@ -6,12 +6,13 @@
   <title>居家介护平台</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, sans-serif; background: linear-gradient(180deg, #e3f2fd 0%, #f5f5f5 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    body { font-family: -apple-system, sans-serif; background: linear-gradient(180deg, #e3f2fd 0%, #f5f5f5 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 24px; }
     .logo { font-size: 28px; font-weight: 700; color: #1565c0; margin-bottom: 8px; text-align: center; }
-    .subtitle { font-size: 15px; color: #666; margin-bottom: 32px; text-align: center; line-height: 1.5; }
+    .subtitle { font-size: 15px; color: #666; margin-bottom: 24px; text-align: center; line-height: 1.5; }
+    h2 { width: 100%; max-width: 340px; font-size: 15px; color: #1565c0; margin: 8px 0 10px; }
     .role-btn { width: 100%; max-width: 340px; background: white; border: none; border-radius: 20px; padding: 22px 20px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); text-decoration: none; color: #333; }
     .icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 28px; }
-    .elder { background: #e3f2fd; } .family { background: #e8f5e9; } .care { background: #fff3e0; } .guide { background: #f3e5f5; }
+    .elder { background: #e3f2fd; } .family { background: #e8f5e9; } .care { background: #fff3e0; } .guide { background: #f3e5f5; } .org { background: #e8eaf6; }
     .text { flex: 1; } .text h3 { font-size: 18px; margin-bottom: 4px; } .text p { font-size: 13px; color: #888; }
     .arrow { font-size: 20px; color: #bbb; }
     .footer { margin-top: 24px; font-size: 12px; color: #999; text-align: center; }
@@ -19,11 +20,17 @@
 </head>
 <body>
   <div class="logo">居家介护平台</div>
-  <div class="subtitle">试用版 · 请先看使用说明</div>
-  <a class="role-btn" href="elder-app.html"><div class="icon elder">🧓</div><div class="text"><h3>老人端</h3><p>大按钮表达需求</p></div><div class="arrow">›</div></a>
+  <div class="subtitle">旧版仍在。新版本是机构试用。</div>
+  <h2>新版本 · 机构</h2>
+  <a class="role-btn" href="v3/index.html"><div class="icon org">⊞</div><div class="text"><h3>新版三个端</h3><p>患者 · 护理员 · 机构</p></div><div class="arrow">›</div></a>
+  <a class="role-btn" href="v3/patient.html"><div class="icon elder">👴</div><div class="text"><h3>患者端</h3><p>点服务 · 完成后看收款码</p></div><div class="arrow">›</div></a>
+  <a class="role-btn" href="v3/caregiver.html"><div class="icon care">👩‍⚕️</div><div class="text"><h3>护理员端</h3><p>抢单 · 拍照 · 出示收款码</p></div><div class="arrow">›</div></a>
+  <a class="role-btn" href="v3/org.html"><div class="icon family">🏢</div><div class="text"><h3>机构端</h3><p>核对 · 收款 · 发放</p></div><div class="arrow">›</div></a>
+  <h2>旧版</h2>
+  <a class="role-btn" href="elder-app.html"><div class="icon elder">👴</div><div class="text"><h3>老人端</h3><p>大按钮表达需求</p></div><div class="arrow">›</div></a>
   <a class="role-btn" href="family-app.html"><div class="icon family">👨‍👩‍👧</div><div class="text"><h3>家属端</h3><p>通知 · 确认 · 绑定</p></div><div class="arrow">›</div></a>
   <a class="role-btn" href="caregiver-app.html"><div class="icon care">👩‍⚕️</div><div class="text"><h3>护理员端</h3><p>接单 · 完成服务</p></div><div class="arrow">›</div></a>
-  <a class="role-btn" href="guide.html?v=3"><div class="icon guide">📄</div><div class="text"><h3>使用说明与免责</h3><p>怎么用 · 老人短信 · 不能替代 120</p></div><div class="arrow">›</div></a>
+  <a class="role-btn" href="guide.html?v=3"><div class="icon guide">📄</div><div class="text"><h3>使用说明与免责</h3><p>怎么用 · 不能替代急救</p></div><div class="arrow">›</div></a>
   <div class="footer">居家介护 · 试用版</div>
 </body>
 </html>
