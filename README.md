@@ -5,6 +5,8 @@
 ## 新版本
 
 - [三个端入口](https://pomosherry-hue.github.io/home-care-demo/v3/index.html)
+- [全部网址二维码](https://pomosherry-hue.github.io/home-care-demo/v3/qrcodes.html)
+- [使用说明与免责](https://pomosherry-hue.github.io/home-care-demo/v3/guide.html)
 - [患者端](https://pomosherry-hue.github.io/home-care-demo/v3/patient.html)
 - [护理员端](https://pomosherry-hue.github.io/home-care-demo/v3/caregiver.html)
 - [机构端](https://pomosherry-hue.github.io/home-care-demo/v3/org.html)
