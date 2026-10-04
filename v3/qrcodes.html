@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>全部网址二维码</title>
+<style>body{font-family:-apple-system,sans-serif;background:#fff;margin:0;padding:16px}.row{display:flex;gap:16px;align-items:center;margin:18px 0;border-bottom:1px solid #eee;padding-bottom:16px}.name{font-size:20px;font-weight:700}.url{color:#333;font-size:13px;word-break:break-all;margin-top:6px}a{color:#1565c0}</style></head>
+<body>
+<h2>居家介护 · 新版本</h2>
+<p><a href="index.html">返回三个端</a></p>
+<div id="list"></div>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+var pages=[
+['三个端','https://pomosherry-hue.github.io/home-care-demo/v3/index.html'],
+['患者端','https://pomosherry-hue.github.io/home-care-demo/v3/patient.html'],
+['护理员端','https://pomosherry-hue.github.io/home-care-demo/v3/caregiver.html'],
+['机构端','https://pomosherry-hue.github.io/home-care-demo/v3/org.html'],
+['使用说明','https://pomosherry-hue.github.io/home-care-demo/v3/guide.html']
+];
+pages.forEach(function(p,i){
+  var row=document.createElement('div'); row.className='row';
+  var box=document.createElement('div'); box.id='q'+i;
+  var text=document.createElement('div');
+  text.innerHTML='<div class="name">'+p[0]+'</div><div class="url">'+p[1]+'</div>';
+  row.appendChild(box); row.appendChild(text);
+  document.getElementById('list').appendChild(row);
+  new QRCode(box,{text:p[1],width:180,height:180});
+});
+</script></body></html>
